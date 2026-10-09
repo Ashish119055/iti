@@ -199,6 +199,18 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .proc li{display:grid;grid-template-columns:34px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .proc li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-mono);font-weight:600}
 .proc li h4{margin-bottom:2px}
+.demo-callout{position:relative;margin:0 12px 12px;min-height:4.4em;background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;box-shadow:0 6px 18px color-mix(in srgb,var(--ink) 14%,transparent);animation:pop .35s ease}
+.demo-callout .big{display:block;font-family:var(--font-mono);font-size:1.25rem;color:var(--accent)}
+@keyframes pop{from{transform:translateY(6px);opacity:.4}to{transform:none;opacity:1}}
+.chap{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;counter-reset:c}
+.chap button{width:100%;text-align:left;display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;cursor:pointer;line-height:1.35}
+.chap button::before{counter-increment:c;content:counter(c);flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--surface-2);font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+.chap button.cur{border-color:var(--accent);background:var(--accent-soft)}
+.chap button.cur::before{background:var(--accent);color:var(--surface)}
+.chap button.seen::before{background:var(--ok);color:var(--surface)}
+.demo-bar{display:grid;gap:10px}
+.s-pulse{fill:none;stroke:var(--pointer);stroke-width:3}
+.s-mark{fill:var(--accent)}
 svg text{user-select:none}
 footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
 footer .wrap{padding-block:18px}
@@ -226,10 +238,11 @@ footer .wrap{padding-block:18px}
   <div class="wrap" role="tablist">
     <button class="tab" role="tab" data-tab="theory" aria-selected="false"><span class="n">1</span>થીયરી</button>
     <button class="tab" role="tab" data-tab="parts" aria-selected="false"><span class="n">2</span>ભાગો અને રચના</button>
-    <button class="tab" role="tab" data-tab="sim" aria-selected="true"><span class="n">3</span>સિમ્યુલેટર</button>
-    <button class="tab" role="tab" data-tab="read" aria-selected="false"><span class="n">4</span>રીડિંગ પ્રેક્ટિસ</button>
-    <button class="tab" role="tab" data-tab="test" aria-selected="false"><span class="n">5</span>ટેસ્ટિંગ પદ્ધતિ</button>
-    <button class="tab" role="tab" data-tab="mcq" aria-selected="false"><span class="n">6</span>MCQ ટેસ્ટ</button>
+    <button class="tab" role="tab" data-tab="demo" aria-selected="true"><span class="n">3</span>ડેમો</button>
+    <button class="tab" role="tab" data-tab="sim" aria-selected="false"><span class="n">4</span>સિમ્યુલેટર</button>
+    <button class="tab" role="tab" data-tab="read" aria-selected="false"><span class="n">5</span>રીડિંગ પ્રેક્ટિસ</button>
+    <button class="tab" role="tab" data-tab="test" aria-selected="false"><span class="n">6</span>ટેસ્ટિંગ પદ્ધતિ</button>
+    <button class="tab" role="tab" data-tab="mcq" aria-selected="false"><span class="n">7</span>MCQ ટેસ્ટ</button>
   </div>
 </nav>
 
@@ -470,11 +483,64 @@ footer .wrap{padding-block:18px}
 </section>
 
 <!-- ===================== 3. સિમ્યુલેટર ===================== -->
-<section class="panel" id="tab-sim">
+<!-- ===================== 3. ડેમો ===================== -->
+<section class="panel" id="tab-demo" hidden>
   <div class="prose" style="max-width:none">
-    <span class="eyebrow">પ્રકરણ 3 · લાઇવ સિમ્યુલેટર</span>
+    <span class="eyebrow">પ્રકરણ 3 · એનિમેશન ડેમો</span>
+    <h2>જુઓ: ગેજ સેટ કરવું અને રીડિંગ લેવું</h2>
+    <p class="lead">13 પગલાંનો એનિમેટેડ ડેમો. ▶ ચલાવો દબાવો, અથવા નીચેની યાદીમાંથી કોઈ પણ પગલું પસંદ કરો. ડેમો પૂરો થાય પછી સિમ્યુલેટરમાં જાતે પ્રયત્ન કરો.</p>
+  </div>
+
+  <div class="sim">
+    <div class="stage">
+      <span class="cap" id="dCap">ડેમો</span>
+      <svg id="dScene" viewBox="0 0 400 420" aria-label="ડેમો એનિમેશન" style="cursor:default"></svg>
+      <div class="demo-callout" id="dCall"></div>
+    </div>
+    <div class="dial-box">
+      <div class="dial-card">
+        <svg id="dDial" aria-label="ડેમો ડાયલ"></svg>
+        <div class="readout">
+          <div class="ro"><div class="k">ઝીરોથી દિશા</div><div class="v" id="dDir">—</div></div>
+          <div class="ro"><div class="k">નમન કોણ α</div><div class="v" id="dTilt">0.0°</div></div>
+          <div class="ro"><div class="k">બેઝલ</div><div class="v" id="dLock">ખુલ્લું</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="lbl">નોંધ પત્રક (ડેમો)</div>
+        <div class="tbl-wrap" style="margin-top:6px"><table class="rec-table" id="dTable"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card demo-bar">
+    <div class="qmeta"><span>પગલું <b class="mono" id="dNo">1</b> / <b class="mono" id="dTot">13</b></span><span class="mono" id="dTime"></span></div>
+    <div class="progress"><i id="dBar"></i></div>
+    <h3 id="dTitle"></h3>
+    <p id="dText" style="max-width:72ch"></p>
+    <div class="btn-row">
+      <button class="btn" id="dPrev" aria-label="પાછલું પગલું">⏮ પાછળ</button>
+      <button class="btn primary" id="dPlay">▶ ચલાવો</button>
+      <button class="btn" id="dNext" aria-label="આગળનું પગલું">આગળ ⏭</button>
+      <button class="btn" id="dRestart">↺ શરૂઆતથી</button>
+      <label class="btn-row lbl" for="dSpeed">ઝડપ
+        <select id="dSpeed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+      <label class="btn-row lbl" style="cursor:pointer"><input type="checkbox" id="dVoice"> <span id="dVoiceLbl">ગુજરાતી અવાજ</span></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4 style="margin-bottom:8px">પગલાંની યાદી</h4>
+    <ol class="chap" id="dChaps"></ol>
+    <div class="btn-row" style="margin-top:12px"><button class="btn primary" id="dGoSim">હવે જાતે કરો → સિમ્યુલેટર</button></div>
+  </div>
+</section>
+
+<section class="panel" id="tab-sim" hidden>
+  <div class="prose" style="max-width:none">
+    <span class="eyebrow">પ્રકરણ 4 · લાઇવ સિમ્યુલેટર</span>
     <h2>બોર માપો: સેટ કરો, ઝીરો કરો, ટર્નિંગ પોઇન્ટ શોધો</h2>
-    <p class="lead">ચિત્ર પર ડાબે-જમણે ખેંચો અથવા "નમન કોણ" સ્લાઇડર ફેરવીને ગેજને હલાવો. પોઇન્ટર જ્યાં પાછો વળે ત્યાંનું રીડિંગ નોંધો.</p>
+    <p class="lead">ચિત્ર પર ડાબે-જમણે ખેંચો અથવા "નમન કોણ" સ્લાઇડર ફેરવીને ગેજને હલાવો. પોઇન્ટર જ્યાં પાછો વળે ત્યાંનું રીડિંગ નોંધો. પહેલી વાર હોય તો પહેલાં <a href="#demo" id="toDemo">ડેમો</a> જુઓ.</p>
   </div>
 
   <ol class="steps" id="steps">
@@ -592,7 +658,7 @@ footer .wrap{padding-block:18px}
 <!-- ===================== 4. રીડિંગ પ્રેક્ટિસ ===================== -->
 <section class="panel" id="tab-read" hidden>
   <div class="prose">
-    <span class="eyebrow">પ્રકરણ 4 · રીડિંગ પ્રેક્ટિસ</span>
+    <span class="eyebrow">પ્રકરણ 5 · રીડિંગ પ્રેક્ટિસ</span>
     <h2>ડાયલ વાંચવાની ઝડપી પ્રેક્ટિસ</h2>
     <p class="lead">દરેક પ્રશ્નમાં ડાયલ ટર્નિંગ પોઇન્ટ પરનું રીડિંગ બતાવે છે. જવાબ mmમાં બે દશાંશ સુધી લખો.</p>
   </div>
@@ -617,7 +683,7 @@ footer .wrap{padding-block:18px}
 <!-- ===================== 5. ટેસ્ટિંગ ===================== -->
 <section class="panel" id="tab-test" hidden>
   <div class="prose">
-    <span class="eyebrow">પ્રકરણ 5 · ટેસ્ટિંગ પદ્ધતિ</span>
+    <span class="eyebrow">પ્રકરણ 6 · ટેસ્ટિંગ પદ્ધતિ</span>
     <h2>બોરનું ટેસ્ટિંગ કઈ રીતે કરવું</h2>
     <p class="lead">નીચેની પદ્ધતિ એન્જિન સિલિન્ડર બોરના નિરીક્ષણ માટે છે; કોઈ પણ બોર માટે એ જ ક્રમ લાગુ પડે છે.</p>
   </div>
@@ -691,7 +757,7 @@ footer .wrap{padding-block:18px}
 <!-- ===================== 6. MCQ ===================== -->
 <section class="panel" id="tab-mcq" hidden>
   <div class="prose">
-    <span class="eyebrow">પ્રકરણ 6 · MCQ ટેસ્ટ</span>
+    <span class="eyebrow">પ્રકરણ 7 · MCQ ટેસ્ટ</span>
     <h2>બહુવિકલ્પ પ્રશ્નોત્તરી</h2>
     <p class="lead">ITI થીયરી અને પ્રેક્ટિકલ પરીક્ષાના ધોરણ મુજબના પ્રશ્નો. અભ્યાસ મોડમાં દરેક જવાબ પછી સમજૂતી મળે છે; પરીક્ષા મોડમાં સમય મર્યાદા સાથે અંતે પરિણામ.</p>
   </div>
@@ -747,8 +813,8 @@ function showTab(name){
 }
 tabs.forEach(function(t){t.addEventListener("click",function(){showTab(t.dataset.tab);window.scrollTo({top:0});});});
 var startTab=(location.hash||"").replace("#","");
-if(!document.getElementById("tab-"+startTab)) startTab=store("dbg-tab")||"sim";
-if(!document.getElementById("tab-"+startTab)) startTab="sim";
+if(!document.getElementById("tab-"+startTab)) startTab=store("dbg-tab")||"demo";
+if(!document.getElementById("tab-"+startTab)) startTab="demo";
 showTab(startTab);
 
 /* ---------------- ડાયલ બનાવનાર ---------------- */
@@ -1225,6 +1291,160 @@ function finishMCQ(){
   if(wrong.length)$("mqWrong").addEventListener("click",function(){startMCQ(wrong.map(function(k){return mq.list[k].src;}));});
   r.scrollIntoView({behavior:"smooth",block:"start"});
 }
+
+/* ================= એનિમેશન ડેમો ================= */
+var DFREE=77.20,DN=76;
+var DREAD={"0A":76.08,"0B":76.04,"1A":76.05,"1B":76.03,"2A":76.02,"2B":76.01};
+var dDial=buildDial($("dDial"));dDial.drawScale("cont");
+(function(){var g=document.createElementNS(NS,"g");g.setAttribute("class","mk");g.innerHTML='<polygon class="s-mark" points="0,-104 -5,-115 5,-115"/>';g.style.display="none";$("dDial").appendChild(g);})();
+function lerp(a,b,t){return a+(b-a)*t;}
+function ease(t){t=clamp(t,0,1);return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+function seg(p,a,b){return clamp((p-a)/(b-a),0,1);}
+function rockDecay(q,amp){return (amp||6)*Math.sin(q*Math.PI*4)*Math.max(0,1-q*1.25);}
+function mk(o){var d={loc:"none",gy:250,tilt:0,rod:1,washer:true,bezel:0,hl:null,lock:false,inBore:false,D:DN,dir:"A",lvl:0,mark:false,call:"",rec:0};for(var k in o)d[k]=o[k];return d;}
+var BZ=mod((DFREE-DN)*100,100); /* ઝીરો પછી બેઝલ */
+var LY=[150,255,360];
+function measStep(lvl,dirA,p,recBase){
+  var half=p<.5?0:1,q=half?seg(p,.5,1):seg(p,0,.5),dir=half?"B":"A",D=DREAD[lvl+dir];
+  var done=q>.8,rd=Math.round((D-DN)*100);
+  var call=done?(LVL[lvl]+" "+dir+"-"+dir+": પોઇન્ટર ઊલટી દિશામાં "+rd+" વિભાગ<span class=big>"+DN.toFixed(2)+" + "+f2(rd/100)+" = "+f2(D)+" mm</span>"):(half?"ગેજને 90° ફેરવો — હવે B-B દિશા. ફરી હલાવો.":"ગેજ હલાવો… ટર્નિંગ પોઇન્ટ શોધો");
+  return mk({loc:"job",gy:LY[lvl],tilt:rockDecay(q,5),inBore:true,D:D,dir:dir,lvl:lvl,bezel:BZ,lock:true,mark:q>.55,call:call,rec:recBase+half+(done?1:0)});
+}
+var DSTEPS=[
+ {t:"ગેજ ઓળખો",x:"ડાયલ બોર ગેજના ત્રણ મુખ્ય ભાગ: ઉપર ડાયલ ઇન્ડિકેટર, વચ્ચે ઇન્સ્યુલેટેડ હેન્ડલ અને નીચે માપન હેડ. હેડમાં એક બાજુ સ્થિર એન્વિલ અને બીજી બાજુ સ્પ્રિંગવાળો પ્લન્જર હોય છે.",d:7000,
+  f:function(p){var h=p<.33?"dial":p<.66?"grip":"head";return mk({rod:0,washer:false,hl:h,call:{dial:"ડાયલ ઇન્ડિકેટર — 0.01 mm વિભાગ",grip:"ઇન્સ્યુલેટેડ હેન્ડલ — હાથની ગરમી રોકે",head:"માપન હેડ: ડાબે એન્વિલ, જમણે પ્લન્જર + ગાઇડ"}[h]});}},
+ {t:"એક્સ્ટેન્શન રોડ અને વોશર લગાવો",x:"જોબનો નોમિનલ વ્યાસ 76 mm છે. 75 mm નો એક્સ્ટેન્શન રોડ અને 1 mm નું વોશર લગાવો. રોડ વત્તા વોશર બરાબર નોમિનલ માપ.",d:7000,
+  f:function(p){return mk({rod:ease(seg(p,0,.6)),washer:p>.65,hl:p<.65?"rod":"washer",call:p<.65?"75 mm એક્સ્ટેન્શન રોડ સ્ક્રુ કરો":"1 mm વોશર ઉમેરો<span class=big>75 + 1 = 76 mm</span>"});}},
+ {t:"સેટિંગ રીંગમાં દાખલ કરો",x:"76 mm ની સેટિંગ રીંગ ગેજ લો. ગેજને થોડું નમાવી પહેલાં પ્લન્જર અને ગાઇડ બાજુ અંદર મૂકો, પછી એન્વિલ બાજુ ધીમેથી નીચે લાવો.",d:7000,
+  f:function(p){var a=seg(p,0,.7),gy=lerp(170,325,ease(a)),inB=gy>=318;return mk({loc:"ring",gy:gy,tilt:inB?lerp(6,3,seg(p,.7,1)):lerp(14,7,a),inBore:inB,call:inB?"ગેજ રીંગમાં બેઠું — પ્લન્જર દબાયો, પોઇન્ટર ફર્યો":"પ્લન્જર બાજુ પહેલાં નમાવીને દાખલ કરો"});}},
+ {t:"ગેજ હલાવો (રોકિંગ)",x:"હેન્ડલ પકડી ગેજને આગળ-પાછળ હળવેથી હલાવો. પોઇન્ટર પણ આગળ-પાછળ ફરશે. ગેજ ત્રાંસુ હોય ત્યારે અંતર વધે છે, એટલે પોઇન્ટર ઊલટી દિશામાં જાય છે.",d:8000,
+  f:function(p){return mk({loc:"ring",gy:325,tilt:6*Math.sin(p*Math.PI*4+0.5),inBore:true,call:"પોઇન્ટર જુઓ: આગળ જાય છે… પાછો આવે છે…"});}},
+ {t:"ટર્નિંગ પોઇન્ટ ઓળખો",x:"હલાવતી વખતે પોઇન્ટર ઘડિયાળની દિશામાં જ્યાં સૌથી દૂર જઈને પાછો વળે તે ટર્નિંગ પોઇન્ટ છે. ત્યારે ગેજ બોરને બરાબર લંબ હોય છે અને અંતર સૌથી ઓછું એટલે સાચો વ્યાસ.",d:8000,
+  f:function(p){var t=p<.5?lerp(5,-3,ease(p/.5)):lerp(-3,0,ease(seg(p,.5,.85)));return mk({loc:"ring",gy:325,tilt:t,inBore:true,mark:p>.3,call:p>.85?"અહીં પોઇન્ટર પાછો વળ્યો — આ જ ટર્નિંગ પોઇન્ટ ▲":"ધીમેથી હલાવો… પોઇન્ટર ક્યાં પાછો વળે છે?"});}},
+ {t:"બેઝલ ફેરવી ઝીરો કરો",x:"ટર્નિંગ પોઇન્ટ પર ગેજ સ્થિર રાખી બેઝલ (બહારની રીંગ) ફેરવો, જ્યાં સુધી સ્કેલનું 0 પોઇન્ટરની બરાબર નીચે ન આવે.",d:7000,
+  f:function(p){return mk({loc:"ring",gy:325,inBore:true,mark:true,bezel:BZ*ease(seg(p,.1,.8)),call:p>.8?"ઝીરો સેટ થયો — પોઇન્ટર 0 પર":"બેઝલ ફેરવો…"});}},
+ {t:"બેઝલ લોક કરો અને ફેરા ગણક નોંધો",x:"બેઝલ લોક સ્ક્રુ કસો જેથી ઝીરો ન ખસે. નાના ફેરા ગણકનો કાંટો ક્યાં છે તે પણ યાદ રાખો. હવે ગેજ 76.00 mm પર સેટ છે.",d:6000,
+  f:function(p){return mk({loc:"ring",gy:325,inBore:true,bezel:BZ,lock:p>.3,call:p>.3?"લોક સ્ક્રુ કસ્યો ✔ ગેજ 76.00 mm પર સેટ":"લોક સ્ક્રુ કસો"});}},
+ {t:"જોબમાં દાખલ કરો — ઉપર, A-A",x:"ગેજને સિલિન્ડરમાં ઉપરની ઊંડાઈએ (ટોપ રિંગ રિવર્સલથી થોડું નીચે) મૂકો. પહેલી દિશા A-A એટલે થ્રસ્ટ બાજુ, ક્રેન્કશાફ્ટને લંબ.",d:6000,
+  f:function(p){return mk({loc:"job",gy:150,tilt:lerp(12,4,ease(p)),inBore:true,D:DREAD["0A"],bezel:BZ,lock:true,call:"ઉપરની ઊંડાઈ · A-A દિશા (ઉપરથી દૃશ્ય જુઓ)"});}},
+ {t:"રીડિંગ લો — ઉપર A-A અને B-B",x:"ગેજ હલાવી ટર્નિંગ પોઇન્ટ પર પોઇન્ટર વાંચો. અહીં પોઇન્ટર ઝીરોથી ઊલટી દિશામાં 8 વિભાગ છે, એટલે બોર 0.08 mm મોટો: 76.08 mm. પછી ગેજ 90° ફેરવી B-B દિશામાં માપ લો.",d:12000,
+  f:function(p){return measStep(0,true,p,0);}},
+ {t:"મધ્ય ઊંડાઈ — A-A અને B-B",x:"ગેજને મધ્ય ઊંડાઈએ નીચે લાવો અને એ જ રીતે બંને દિશામાં ટર્નિંગ પોઇન્ટ પર રીડિંગ લો.",d:11000,
+  f:function(p){var d=measStep(1,true,p,2);return d;}},
+ {t:"નીચેની ઊંડાઈ — A-A અને B-B",x:"હવે સ્કર્ટ વિસ્તારમાં, નીચેની ઊંડાઈએ બંને દિશામાં માપ લો. નીચે ઘસારો સૌથી ઓછો હોય છે.",d:11000,
+  f:function(p){return measStep(2,true,p,4);}},
+ {t:"ઓવાલિટી અને ટેપર ગણો",x:"ઓવાલિટી = એક જ ઊંડાઈએ A અને B નો તફાવત. ટેપર = એક જ દિશામાં ઉપર અને નીચેનો તફાવત. અહીં મહત્તમ ઓવાલિટી 0.04 mm અને મહત્તમ ટેપર 0.06 mm.",d:8000,
+  f:function(p){return mk({loc:"job",gy:360,inBore:true,D:DREAD["2B"],dir:"B",lvl:2,bezel:BZ,lock:true,rec:6,calc:true,call:"ઓવાલિટી (ઉપર) = 76.08 − 76.04 = 0.04<br>ટેપર (A-A) = 76.08 − 76.02 = 0.06"});}},
+ {t:"નિર્ણય લો અને ઝીરો ફરી તપાસો",x:"મર્યાદા: ઓવાલિટી 0.04 અને ટેપર 0.05. ટેપર 0.06 મર્યાદા બહાર છે, એટલે સિલિન્ડર અસ્વીકાર્ય: રીબોર કે હોનિંગ જરૂરી. અંતે ગેજને ફરી સેટિંગ રીંગમાં મૂકી ઝીરો ખસ્યો નથી તે ચકાસો.",d:9000,
+  f:function(p){if(p<.45)return mk({loc:"job",gy:360,inBore:true,D:DREAD["2B"],dir:"B",lvl:2,bezel:BZ,lock:true,rec:6,calc:true,call:"ટેપર 0.06 > 0.05 ✘<span class=big>અસ્વીકાર્ય — રીબોર / હોનિંગ</span>"});
+    var q=seg(p,.5,1);return mk({loc:"ring",gy:325,tilt:rockDecay(q,4),inBore:true,bezel:BZ,lock:true,mark:q>.5,rec:6,calc:true,call:q>.8?"ઝીરો બરાબર છે ✔ માપ સાચા":"ગેજ રીંગમાં પાછું — ઝીરો તપાસો"});}}
+];
+var dm={i:0,t:0,playing:false,last:0,speed:1,voice:false,seen:{}};
+var dTotal=DSTEPS.reduce(function(a,s){return a+s.d;},0);
+$("dTot").textContent=DSTEPS.length;
+$("dChaps").innerHTML=DSTEPS.map(function(s,i){return '<li><button data-di="'+i+'">'+s.t+'</button></li>';}).join("");
+[].forEach.call(document.querySelectorAll("[data-di]"),function(b){b.addEventListener("click",function(){dGoto(+b.dataset.di);});});
+
+function dC(ds){return ds.inBore?DFREE-ds.D/Math.cos(ds.tilt*Math.PI/180):0.06;}
+function drawDemo(ds){
+  var s='<defs><pattern id="dhatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" style="fill:var(--work)"/><line x1="0" y1="0" x2="0" y2="8" class="s-hatch"/></pattern></defs>';
+  if(ds.loc==="ring"){
+    s+='<rect x="10" y="352" width="380" height="14" class="s-steel-d"/>';
+    s+='<rect x="30" y="298" width="50" height="54" fill="url(#dhatch)" style="stroke:var(--hatch)"/><rect x="320" y="298" width="50" height="54" fill="url(#dhatch)" style="stroke:var(--hatch)"/>';
+    s+='<text class="s-txt" x="200" y="392" text-anchor="middle" font-size="13" font-weight="700">સેટિંગ રીંગ ગેજ Ø 76.000 mm</text>';
+  }else if(ds.loc==="job"){
+    s+='<rect x="10" y="110" width="70" height="296" fill="url(#dhatch)" style="stroke:var(--hatch)"/><rect x="320" y="110" width="70" height="296" fill="url(#dhatch)" style="stroke:var(--hatch)"/>';
+    for(var l=0;l<3;l++){var on=l===ds.lvl;s+='<line x1="80" y1="'+LY[l]+'" x2="320" y2="'+LY[l]+'" stroke-dasharray="4 5" class="'+(on?"s-acc":"s-line")+'" opacity="'+(on?.9:.35)+'"/>';}
+    s+='<g transform="translate(350,52)"><circle r="30" class="s-work"/><circle r="22" class="s-bg" stroke="var(--hatch)"/>';
+    s+='<line x1="-22" y1="0" x2="22" y2="0" stroke-width="'+(ds.dir==="A"?3:1)+'" class="'+(ds.dir==="A"?"s-acc":"s-line")+'"/><line x1="0" y1="-22" x2="0" y2="22" stroke-width="'+(ds.dir==="B"?3:1)+'" class="'+(ds.dir==="B"?"s-acc":"s-line")+'"/>';
+    s+='<text x="-38" y="4" font-size="10" class="s-txt" text-anchor="middle">A</text><text x="0" y="-34" font-size="10" class="s-txt" text-anchor="middle">B</text></g>';
+  }else{
+    s+='<rect x="40" y="300" width="320" height="10" rx="3" class="s-steel-d" opacity=".5"/>';
+  }
+  var a=ds.tilt,ca=Math.cos(a*Math.PI/180),h=ds.inBore?120/ca:124,L=Math.max(140,(ds.gy-30)/ca),c=dC(ds);
+  var rodL=(h-63)*ds.rod;
+  s+='<g transform="translate(200,'+ds.gy.toFixed(1)+') rotate('+a.toFixed(2)+')">';
+  s+='<rect x="-5" y="'+(-L)+'" width="10" height="'+(L-10)+'" class="s-steel"/>';
+  s+='<rect x="-10" y="'+(-L+40)+'" width="20" height="'+Math.min(90,L-70)+'" rx="6" class="s-grip"/>';
+  s+='<circle cx="0" cy="'+(-L-6)+'" r="17" class="s-bezel"/><circle cx="0" cy="'+(-L-6)+'" r="13" class="s-face"/>';
+  var pd=(c*360)*Math.PI/180;
+  s+='<line x1="0" y1="'+(-L-6)+'" x2="'+(11*Math.sin(pd)).toFixed(2)+'" y2="'+(-L-6-11*Math.cos(pd)).toFixed(2)+'" class="s-ptr-l" stroke-width="1.6"/>';
+  s+='<rect x="-58" y="-12" width="116" height="24" rx="4" class="s-steel"/>';
+  if(ds.rod>0.01){s+='<rect x="'+(-63-rodL)+'" y="-4" width="'+rodL+'" height="8" class="s-steel-d"/>';if(ds.rod>.98)s+='<circle cx="'+(-h+4)+'" cy="0" r="4" class="s-steel-d"/>';}
+  if(ds.washer)s+='<rect x="-64" y="-9" width="6" height="18" class="s-steel" style="stroke:var(--accent);stroke-width:1.5"/>';
+  s+='<rect x="58" y="-3.5" width="'+(h-62)+'" height="7" class="s-steel-d"/><circle cx="'+(h-4)+'" cy="0" r="4" class="s-steel-d"/>';
+  s+='<path d="M64 -14 Q'+(h-3)+' -14 '+(h-0.5)+' -3 M64 14 Q'+(h-3)+' 14 '+(h-0.5)+' 3" class="s-guide"/>';
+  if(ds.inBore)s+='<circle cx="'+(-h)+'" cy="0" r="2.6" class="s-contact"/><circle cx="'+h+'" cy="0" r="2.6" class="s-contact"/>';
+  var hl={dial:[0,-L-6,24],grip:[0,-L+85,52],head:[0,0,70],rod:[-h/2-30,0,38],washer:[-61,0,16]}[ds.hl];
+  if(hl)s+='<circle class="s-pulse" cx="'+hl[0]+'" cy="'+hl[1]+'" r="'+hl[2]+'"><animate attributeName="opacity" values="1;.25;1" dur="1.1s" repeatCount="indefinite"/></circle>';
+  s+='</g>';
+  $("dScene").innerHTML=s;
+  $("dCap").textContent=ds.loc==="ring"?"સેટિંગ રીંગ":ds.loc==="job"?"જોબ · "+LVL[ds.lvl]+" · "+ds.dir+"-"+ds.dir:"ગેજ ઓળખ";
+  dDial.set(c*360,ds.bezel*3.6,c*36);
+  var mkEl=$("dDial").querySelector(".mk");
+  if(ds.mark&&ds.inBore){var ct=DFREE-ds.D;mkEl.style.display="";mkEl.setAttribute("transform","rotate("+(ct*360).toFixed(2)+")");}else mkEl.style.display="none";
+  var sd=mod(c*100-ds.bezel,100);if(sd>50)sd-=100;
+  $("dDir").textContent=!ds.inBore?"—":(Math.abs(sd)<0.05?"ઝીરો પર":(sd>0?"ઘડિયાળ "+sd.toFixed(1):"ઊલટી "+(-sd).toFixed(1)));
+  $("dTilt").textContent=(a>0?"+":"")+a.toFixed(1)+"°";
+  $("dLock").textContent=ds.lock?"લોક ✔":"ખુલ્લું";
+  var call=$("dCall");if(ds.call){if(call.dataset.k!==ds.call){call.innerHTML=ds.call;call.dataset.k=ds.call;call.hidden=false;call.style.animation="none";void call.offsetWidth;call.style.animation="";}}else{call.innerHTML="";call.dataset.k="";}
+  dTable(ds.rec,ds.calc);
+}
+function dTable(n,calc){
+  var order=["0A","0B","1A","1B","2A","2B"],h='<tr><th>ઊંડાઈ</th><th>A-A</th><th>B-B</th>'+(calc?'<th>ઓવાલિટી</th>':'')+'</tr>';
+  for(var l=0;l<3;l++){h+='<tr><th>'+LVL[l]+'</th>';["A","B"].forEach(function(d){var k=l+d,on=order.indexOf(k)<n;h+='<td class="mono'+(on?" cell-ok":"")+'">'+(on?f2(DREAD[k]):"—")+'</td>';});
+    if(calc)h+='<td class="mono">'+f2(Math.abs(DREAD[l+"A"]-DREAD[l+"B"]))+'</td>';h+='</tr>';}
+  if(calc)h+='<tr><th>ટેપર</th><td class="mono">'+f2(DREAD["0A"]-DREAD["2A"])+'</td><td class="mono">'+f2(DREAD["0B"]-DREAD["2B"])+'</td><td></td></tr>';
+  $("dTable").innerHTML=h;
+}
+function dRender(){
+  var s=DSTEPS[dm.i],p=clamp(dm.t/s.d,0,1);
+  drawDemo(s.f(p));
+  $("dNo").textContent=dm.i+1;$("dTitle").textContent=s.t;$("dText").textContent=s.x;
+  var el=0;for(var k=0;k<dm.i;k++)el+=DSTEPS[k].d;el+=dm.t;
+  $("dBar").style.width=(el/dTotal*100).toFixed(2)+"%";
+  var sec=Math.round(el/1000),tot=Math.round(dTotal/1000);
+  $("dTime").textContent=Math.floor(sec/60)+":"+("0"+sec%60).slice(-2)+" / "+Math.floor(tot/60)+":"+("0"+tot%60).slice(-2);
+  [].forEach.call(document.querySelectorAll("[data-di]"),function(b){var i=+b.dataset.di;b.className=i===dm.i?"cur":(dm.seen[i]?"seen":"");});
+  $("dPrev").disabled=dm.i===0;$("dNext").disabled=dm.i===DSTEPS.length-1;
+}
+function dLoop(ts){
+  if(!dm.playing)return;
+  if(!dm.last)dm.last=ts;
+  dm.t+=(ts-dm.last)*dm.speed;dm.last=ts;
+  if(dm.t>=DSTEPS[dm.i].d){
+    dm.seen[dm.i]=true;
+    if(dm.i<DSTEPS.length-1){dm.i++;dm.t=0;speak();}
+    else{dm.t=DSTEPS[dm.i].d;dPause();$("dPlay").textContent="↺ ફરી જુઓ";dRender();return;}
+  }
+  dRender();requestAnimationFrame(dLoop);
+}
+function dPlayFn(){
+  if(dm.i===DSTEPS.length-1&&dm.t>=DSTEPS[dm.i].d){dm.i=0;dm.t=0;}
+  dm.playing=true;dm.last=0;$("dPlay").textContent="⏸ થોભો";speak();requestAnimationFrame(dLoop);
+}
+function dPause(){dm.playing=false;$("dPlay").textContent="▶ ચલાવો";try{speechSynthesis.cancel();}catch(e){}}
+function dGoto(i){dm.seen[dm.i]=true;dm.i=clamp(i,0,DSTEPS.length-1);dm.t=0;if(dm.playing){dm.last=0;speak();}else try{speechSynthesis.cancel();}catch(e){}dRender();}
+$("dPlay").addEventListener("click",function(){dm.playing?dPause():dPlayFn();});
+$("dPrev").addEventListener("click",function(){dGoto(dm.i-1);});
+$("dNext").addEventListener("click",function(){dGoto(dm.i+1);});
+$("dRestart").addEventListener("click",function(){dm.seen={};dGoto(0);if(!dm.playing)dPlayFn();});
+$("dSpeed").addEventListener("change",function(){dm.speed=+this.value;});
+$("toDemo").addEventListener("click",function(e){e.preventDefault();showTab("demo");window.scrollTo({top:0});});
+$("dGoSim").addEventListener("click",function(){dPause();showTab("sim");window.scrollTo({top:0});});
+tabs.forEach(function(t){t.addEventListener("click",function(){if(t.dataset.tab!=="demo"&&dm.playing)dPause();});});
+
+/* ગુજરાતી અવાજ (ઉપકરણમાં હોય તો) */
+var guVoice=null;
+function findVoice(){try{var v=speechSynthesis.getVoices();guVoice=v.filter(function(x){return /^gu/i.test(x.lang);})[0]||null;}catch(e){guVoice=null;}
+  $("dVoice").disabled=!guVoice;$("dVoiceLbl").textContent=guVoice?"ગુજરાતી અવાજ":"ગુજરાતી અવાજ (આ ઉપકરણમાં ઉપલબ્ધ નથી)";}
+try{findVoice();speechSynthesis.onvoiceschanged=findVoice;}catch(e){findVoice();}
+$("dVoice").addEventListener("change",function(){dm.voice=this.checked;if(dm.voice&&dm.playing)speak();else try{speechSynthesis.cancel();}catch(e){}});
+function speak(){
+  if(!dm.voice||!guVoice)return;
+  try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(DSTEPS[dm.i].x);u.voice=guVoice;u.lang=guVoice.lang;u.rate=Math.min(1.3,0.9*dm.speed);speechSynthesis.speak(u);}catch(e){}
+}
+dm.t=DSTEPS[0].d*0.1;dRender();dm.t=0;
 })();
 </script>
 </body>
