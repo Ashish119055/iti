@@ -221,6 +221,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .arc-key.ccw{background:var(--arc-ccw)}.arc-key.cw{background:var(--arc-cw)}
 .zoom{display:block;width:100%;height:auto;margin-bottom:6px}
 .zs-ccw{fill:var(--accent)}.zs-cw{fill:var(--bad)}
+.stage svg.bigrev{float:right;width:96px;height:96px;cursor:default;margin:-2px 0 4px 10px}
+.demo-callout::after{content:"";display:block;clear:both}
 .demo-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .s-pulse{fill:none;stroke:var(--pointer);stroke-width:3}
 .s-mark{fill:var(--accent)}
@@ -343,6 +345,7 @@ footer .wrap{padding-block:18px}
         <li>ઇંચ ગેજ: <b class="mono">0.0005″</b> અથવા <b class="mono">0.0001″</b></li>
         <li>નાનો <b>ફેરા ગણક (Revolution counter)</b> પૂરા ફેરા એટલે કે mm બતાવે છે.</li>
       </ul>
+      <p class="note"><b>ફેરા ગણક ક્યારે આગળ વધે?</b> મોટો કાંટો 0 થી શરૂ કરીને 100 વિભાગ ફરી પાછો 0 પર આવે (એક પૂરો ફેરો = 1 mm), ત્યારે નાનો કાંટો એક આંક આગળ જાય. નાના ડાયલનો આખો રાઉન્ડ (0 થી 9 અને પાછો 0) = 10 mm. બોર ગેજનો પ્લન્જર માત્ર 1–2 mm જ ખસે છે, એટલે નાનો કાંટો ક્યારેય પૂરો રાઉન્ડ ફરતો નથી — તે માત્ર બે આંકની વચ્ચે થોડો ખસે છે. ડેમોનું પગલું 3 આ એનિમેશનથી બતાવે છે.</p>
     </div>
   </div>
 
@@ -510,7 +513,7 @@ footer .wrap{padding-block:18px}
   <div class="prose" style="max-width:none">
     <span class="eyebrow">પ્રકરણ 3 · એનિમેશન ડેમો</span>
     <h2>જુઓ: ગેજ સેટ કરવું અને રીડિંગ લેવું</h2>
-    <p class="lead">13 પગલાંનો એનિમેટેડ ડેમો. ▶ ચલાવો દબાવો, અથવા નીચેની યાદીમાંથી કોઈ પણ પગલું પસંદ કરો. ડેમો પૂરો થાય પછી સિમ્યુલેટરમાં જાતે પ્રયત્ન કરો.</p>
+    <p class="lead">14 પગલાંનો એનિમેટેડ ડેમો. ▶ ચલાવો દબાવો, અથવા નીચેની યાદીમાંથી કોઈ પણ પગલું પસંદ કરો. ડેમો પૂરો થાય પછી સિમ્યુલેટરમાં જાતે પ્રયત્ન કરો.</p>
   </div>
 
   <div class="card demo-bar">
@@ -541,6 +544,7 @@ footer .wrap{padding-block:18px}
         <div class="readout">
           <div class="ro"><div class="k">ઝીરોથી દિશા</div><div class="v" id="dDir">—</div></div>
           <div class="ro"><div class="k">નમન કોણ α</div><div class="v" id="dTilt">0.0°</div></div>
+          <div class="ro"><div class="k">ફેરા ગણક (નાનો કાંટો)</div><div class="v" id="dRev">0</div></div>
           <div class="ro"><div class="k">બેઝલ</div><div class="v" id="dLock">ખુલ્લું</div></div>
           <div class="arc-expl" id="dArc">બેઝલ ઝીરો અને લોક થયા પછી અહીં 0 થી પોઇન્ટરનું અંતર ગણતરી સાથે દેખાશે.</div>
         </div>
@@ -586,6 +590,7 @@ footer .wrap{padding-block:18px}
           <div class="ro"><div class="k">સ્કેલ પર રીડિંગ</div><div class="v" id="roScale">—</div></div>
           <div class="ro"><div class="k">ઝીરોથી દિશા</div><div class="v" id="roDir">—</div></div>
           <div class="ro"><div class="k">નમન કોણ α</div><div class="v" id="roTilt">0.0°</div></div>
+          <div class="ro"><div class="k">ફેરા ગણક (નાનો કાંટો)</div><div class="v" id="roRev">—</div></div>
           <div class="ro"><div class="k">ટર્નિંગ પોઇન્ટ</div><div class="v" id="roTurn">—</div></div>
           <div class="arc-expl" id="roArc">ઝીરો સેટ કર્યા પછી અહીં 0 થી પોઇન્ટરનું અંતર દેખાશે.</div>
         </div>
@@ -911,6 +916,18 @@ function zoomStrip(sd){
   s+='<text class="s-mut" x="'+X(-R)+'" y="98" font-size="9.5">◀ ઊલટી દિશા = બોર મોટો (+)</text><text class="s-mut" x="'+X(R)+'" y="98" font-size="9.5" text-anchor="end">ઘડિયાળ દિશા = બોર નાનો (−) ▶</text>';
   return '<svg class="zoom" viewBox="0 0 340 104" role="img" aria-label="0 ની આસપાસનો મોટો કરેલો સ્કેલ">'+s+'</svg>';
 }
+/* મોટું કરેલું ફેરા ગણક (ડેમો માટે) */
+function bigRev(c){
+  var o='<svg class="bigrev" viewBox="-50 -50 100 100" role="img" aria-label="મોટું કરેલું ફેરા ગણક"><circle r="47" class="s-face" stroke="var(--face-ink)" stroke-width="1"/>';
+  for(var i=0;i<10;i++){var b=i*36*Math.PI/180;
+    o+='<line class="s-tick" x1="'+(40*Math.sin(b)).toFixed(1)+'" y1="'+(-40*Math.cos(b)).toFixed(1)+'" x2="'+(47*Math.sin(b)).toFixed(1)+'" y2="'+(-47*Math.cos(b)).toFixed(1)+'" stroke-width="1.5"/>';
+    o+='<text class="s-ink s-mono" x="'+(31*Math.sin(b)).toFixed(1)+'" y="'+(-31*Math.cos(b)).toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="'+(i===Math.floor(c)?800:500)+'">'+i+'</text>';}
+  var a=c*36*Math.PI/180;
+  o+='<line x1="0" y1="0" x2="'+(36*Math.sin(a)).toFixed(1)+'" y2="'+(-36*Math.cos(a)).toFixed(1)+'" class="s-ptr-l" stroke-width="3" stroke-linecap="round"/><circle r="4" class="s-hub"/></svg>';
+  return o;
+}
+/* ફેરા ગણક: પૂરા ફેરા + વિભાગ */
+function revText(c){var t=Math.round(c*100),f=Math.floor(t/100);return f+" અને "+(f+1)+" વચ્ચે ("+f+" ફેરો + "+(t-f*100)+" વિ.)";}
 /* ઝીરોથી અંતરની સમજૂતી */
 function arcText(sd,N,showComp){
   if(Math.abs(sd)<0.5)return '<b>પોઇન્ટર બરાબર 0 પર</b> → કોઈ ફરક નથી → વ્યાસ = <b class="mono">'+f2(N)+' mm</b>';
@@ -1044,6 +1061,7 @@ function update(){
   $("roScale").textContent=(st.style==="bal"?(sc<=50?sc:100-sc):sc).toFixed(1);
   $("roDir").textContent=Math.abs(sd)<0.05?"ઝીરો પર":(sd>0?"ઘડિયાળ દિશા "+sd.toFixed(1):"ઊલટી દિશા "+(-sd).toFixed(1));
   $("roTilt").textContent=(st.tilt>0?"+":"")+st.tilt.toFixed(1)+"°";
+  $("roRev").textContent=revText(c);
   if(t.passed){var ts=signedDiv(t.maxC);$("roTurn").textContent=Math.abs(ts)<0.05?"0 (ઝીરો)":(ts>0?"ઘડિયાળ ":"ઊલટી ")+Math.abs(ts).toFixed(1);}
   else $("roTurn").textContent="હલાવો…";
   if(st.zeroed&&st.mode==="practice"){dial.setArc(sd,st.bezel*3.6);$("roArc").innerHTML=zoomStrip(sd)+(Math.abs(st.tilt)>0.3?'<span class="lbl">ગેજ ત્રાંસુ છે — ટર્નિંગ પોઇન્ટ (α ≈ 0°) પર જ વાંચો</span><br>':'')+arcText(sd,job().N,st.style!=="bal");}
@@ -1365,7 +1383,9 @@ function finishMCQ(){
 var DFREE=77.92,DN=76; /* પ્રીલોડ 1.92 mm: ફેરા ગણક 1 અને 2 ની વચ્ચે રહે, ઝીરો પછી 0 ડાયલની ઉપર આવે */
 var DREAD={"0A":76.08,"0B":76.04,"1A":76.05,"1B":76.03,"2A":76.02,"2B":76.01};
 var dDial=buildDial($("dDial"));dDial.drawScale("cont");
-(function(){var g=document.createElementNS(NS,"g");g.setAttribute("class","mk");g.innerHTML='<polygon class="s-mark" points="0,-104 -5,-115 5,-115"/>';g.style.display="none";$("dDial").appendChild(g);})();
+(function(){var g=document.createElementNS(NS,"g");g.setAttribute("class","mk");g.innerHTML='<polygon class="s-mark" points="0,-104 -5,-115 5,-115"/>';g.style.display="none";$("dDial").appendChild(g);
+  var hl=document.createElementNS(NS,"circle");hl.setAttribute("class","s-pulse revhl");hl.setAttribute("cy","46");hl.setAttribute("r","26");hl.style.display="none";
+  hl.innerHTML='<animate attributeName="opacity" values="1;.2;1" dur="1s" repeatCount="indefinite"/>';$("dDial").appendChild(hl);})();
 function lerp(a,b,t){return a+(b-a)*t;}
 function ease(t){t=clamp(t,0,1);return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
 function seg(p,a,b){return clamp((p-a)/(b-a),0,1);}
@@ -1384,6 +1404,9 @@ var DSTEPS=[
   f:function(p){var h=p<.33?"dial":p<.66?"grip":"head";return mk({rod:0,washer:false,hl:h,call:{dial:"ડાયલ ઇન્ડિકેટર — 0.01 mm વિભાગ",grip:"ઇન્સ્યુલેટેડ હેન્ડલ — હાથની ગરમી રોકે",head:"માપન હેડ: ડાબે એન્વિલ, જમણે પ્લન્જર + ગાઇડ"}[h]});}},
  {t:"એક્સ્ટેન્શન રોડ અને વોશર લગાવો",x:"જોબનો નોમિનલ વ્યાસ 76 mm છે. 75 mm નો એક્સ્ટેન્શન રોડ અને 1 mm નું વોશર લગાવો. રોડ વત્તા વોશર બરાબર નોમિનલ માપ.",d:7000,
   f:function(p){return mk({rod:ease(seg(p,0,.6)),washer:p>.65,hl:p<.65?"rod":"washer",call:p<.65?"75 mm એક્સ્ટેન્શન રોડ સ્ક્રુ કરો":"1 mm વોશર ઉમેરો<span class=big>75 + 1 = 76 mm</span>"});}},
+ {t:"ફેરા ગણક (નાનું ડાયલ) સમજો",x:"મોટો કાંટો એક પૂરો ફેરો ફરે (100 વિભાગ = 1 mm) ત્યારે નાનો કાંટો એક આંક આગળ જાય. એટલે નાના ડાયલનો દરેક આંક = 1 mm. અહીં પ્લન્જરને ધીમે ધીમે 2.5 mm દબાવીને જુઓ: મોટો કાંટો 0 વટાવે ત્યારે નાનો કાંટો 0 થી 1, પછી 1 થી 2 પર જાય છે.",d:16000,
+  f:function(p){var c=2.5*ease(seg(p,.05,.85)),t=Math.round(c*100),full=Math.floor(t/100),rem=t-full*100,cross=c>0.3&&(t%100<6||t%100>96);
+    return mk({rod:1,washer:true,cOv:c,revhl:true,ck:"rev",call:bigRev(c)+"આંગળીથી પ્લન્જર <b>"+f2(c)+" mm</b> દબાયો<span class=big>"+full+" પૂરો ફેરો + "+rem+" વિભાગ</span><small>"+(cross?"<b>હમણાં મોટો કાંટો 0 વટાવ્યો → નાનો કાંટો એક આંક આગળ ("+full+")</b>":"નાનો કાંટો "+full+" અને "+(full+1)+" ની વચ્ચે છે — "+full+" પૂરા mm")+"</small>"});}},
  {t:"સેટિંગ રીંગમાં દાખલ કરો",x:"76 mm ની સેટિંગ રીંગ ગેજ લો. ગેજને થોડું નમાવી પહેલાં પ્લન્જર અને ગાઇડ બાજુ અંદર મૂકો, પછી એન્વિલ બાજુ ધીમેથી નીચે લાવો.",d:7000,
   f:function(p){var a=seg(p,0,.7),gy=lerp(170,325,ease(a)),inB=gy>=318;return mk({loc:"ring",gy:gy,tilt:inB?lerp(4,2,seg(p,.7,1)):lerp(14,7,a),inBore:inB,call:inB?"ગેજ રીંગમાં બેઠું — પ્લન્જર દબાયો, પોઇન્ટર ફર્યો":"પ્લન્જર બાજુ પહેલાં નમાવીને દાખલ કરો"});}},
  {t:"ગેજ હલાવો (રોકિંગ)",x:"હેન્ડલ પકડી ગેજને આગળ-પાછળ હળવેથી હલાવો. પોઇન્ટર પણ આગળ-પાછળ ફરશે. ગેજ ત્રાંસુ હોય ત્યારે અંતર વધે છે, એટલે પોઇન્ટર ઊલટી દિશામાં જાય છે.",d:8000,
@@ -1414,7 +1437,7 @@ $("dTot").textContent=DSTEPS.length;
 $("dChaps").innerHTML=DSTEPS.map(function(s,i){return '<li><button data-di="'+i+'">'+s.t+'</button></li>';}).join("");
 [].forEach.call(document.querySelectorAll("[data-di]"),function(b){b.addEventListener("click",function(){dGoto(+b.dataset.di);});});
 
-function dC(ds){return ds.inBore?DFREE-ds.D/Math.cos(ds.tilt*Math.PI/180):0.06;}
+function dC(ds){if(ds.cOv!=null)return ds.cOv;return ds.inBore?DFREE-ds.D/Math.cos(ds.tilt*Math.PI/180):0.06;}
 function drawDemo(ds){
   var s='<defs><pattern id="dhatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" style="fill:var(--work)"/><line x1="0" y1="0" x2="0" y2="8" class="s-hatch"/></pattern></defs>';
   if(ds.loc==="ring"){
@@ -1455,10 +1478,12 @@ function drawDemo(ds){
   var sd=mod(c*100-ds.bezel,100);if(sd>50)sd-=100;
   $("dDir").textContent=!ds.inBore?"—":(Math.abs(sd)<0.05?"ઝીરો પર":(sd>0?"ઘડિયાળ "+sd.toFixed(1):"ઊલટી "+(-sd).toFixed(1)));
   $("dTilt").textContent=(a>0?"+":"")+a.toFixed(1)+"°";
+  $("dRev").textContent=revText(c);
+  $("dDial").querySelector(".revhl").style.display=ds.revhl?"":"none";
   $("dLock").textContent=ds.lock?"લોક ✔":"ખુલ્લું";
   if(ds.lock&&ds.inBore){dDial.setArc(sd,ds.bezel*3.6);$("dArc").innerHTML=zoomStrip(sd)+(Math.abs(ds.tilt)>0.3?'<span class="lbl">ગેજ હજુ ત્રાંસુ છે — ટર્નિંગ પોઇન્ટ પર જ અંતિમ ગણતરી</span><br>':'')+arcText(sd,DN,true);}
   else{dDial.setArc(null);$("dArc").innerHTML=ds.lock?"ગેજ બોરમાં મૂકો — પછી 0 થી અંતર અહીં દેખાશે.":"બેઝલ ઝીરો અને લોક થયા પછી અહીં 0 થી પોઇન્ટરનું અંતર ગણતરી સાથે દેખાશે.";}
-  var call=$("dCall");if(ds.call){if(call.dataset.k!==ds.call){call.innerHTML=ds.call;call.dataset.k=ds.call;call.hidden=false;call.style.animation="none";void call.offsetWidth;call.style.animation="";}}else{call.innerHTML="";call.dataset.k="";}
+  var call=$("dCall"),ck=ds.ck||ds.call;if(ds.call){if(call.innerHTML!==ds.call)call.innerHTML=ds.call;if(call.dataset.k!==ck){call.dataset.k=ck;call.hidden=false;call.style.animation="none";void call.offsetWidth;call.style.animation="";}}else{call.innerHTML="";call.dataset.k="";}
   dTable(ds.rec,ds.calc);
 }
 function dTable(n,calc){
