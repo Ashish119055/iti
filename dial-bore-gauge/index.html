@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ડાયલ બોર ગેજ સિમ્યુલેટર</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta+Vaani:wght@500;700;800&family=Noto+Sans+Gujarati:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* લેઆઉટ: વર્કશોપ ઇન્સ્પેક્શન શીટ — ઉપર ટેબ બાર, નીચે એક સમયે એક વિભાગ; સિમ્યુલેટરમાં ડાબે કાપ-દ્રશ્ય, જમણે ડાયલ */
+:root{
+  --bg:#eceff1;
+  --surface:#ffffff;
+  --surface-2:#f4f6f7;
+  --ink:#16202a;
+  --muted:#55626e;
+  --line:#cfd7de;
+  --accent:#1c4d8c;        /* મશીનિસ્ટ બ્લુ (લેઆઉટ ડાઇ) */
+  --accent-soft:#dbe6f4;
+  --pointer:#c8321e;       /* ડાયલ પોઇન્ટર લાલ */
+  --ok:#1d7443; --ok-soft:#dcf0e3;
+  --warn:#9a5b00; --warn-soft:#fbeccd;
+  --bad:#b0251c; --bad-soft:#f8dedb;
+  --face:#fbfaf4; --face-ink:#1a1a1a;
+  --steel-1:#e3e7ea; --steel-2:#9aa5ad; --steel-3:#6e7a83;
+  --grip:#2b2f33;
+  --hatch:#8c98a2; --work:#d9dee2;
+  --font-display:"Mukta Vaani","Noto Sans Gujarati","Shruti",sans-serif;
+  --font-body:"Noto Sans Gujarati","Mukta Vaani","Shruti",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono","Noto Sans Gujarati",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f151b; --surface:#172029; --surface-2:#1d2833; --ink:#e2e8ed; --muted:#97a5b1; --line:#2b3946;
+    --accent:#86aee8; --accent-soft:#1d3352; --pointer:#ff6b55;
+    --ok:#6fd39a; --ok-soft:#173a28; --warn:#f0b65a; --warn-soft:#3b2c12; --bad:#ff8a80; --bad-soft:#40201d;
+    --face:#ecebe4; --face-ink:#141414;
+    --steel-1:#b9c2c9; --steel-2:#7f8b94; --steel-3:#56626b; --grip:#0b0d0f;
+    --hatch:#5d6b77; --work:#26313b;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f151b; --surface:#172029; --surface-2:#1d2833; --ink:#e2e8ed; --muted:#97a5b1; --line:#2b3946;
+  --accent:#86aee8; --accent-soft:#1d3352; --pointer:#ff6b55;
+  --ok:#6fd39a; --ok-soft:#173a28; --warn:#f0b65a; --warn-soft:#3b2c12; --bad:#ff8a80; --bad-soft:#40201d;
+  --face:#ecebe4; --face-ink:#141414;
+  --steel-1:#b9c2c9; --steel-2:#7f8b94; --steel-3:#56626b; --grip:#0b0d0f;
+  --hatch:#5d6b77; --work:#26313b;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.7}
+h1,h2,h3,h4{font-family:var(--font-display);line-height:1.25;text-wrap:balance;margin:0}
+h2{font-size:1.65rem;font-weight:800}
+h3{font-size:1.2rem;font-weight:700}
+h4{font-size:1.02rem;font-weight:700}
+p{margin:0}
+.mono,.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px}
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;padding-block:18px 14px}
+.brand h1{font-size:clamp(1.6rem,3.6vw,2.3rem);font-weight:800;letter-spacing:-.01em}
+.brand h1 span{color:var(--accent)}
+.brand p{color:var(--muted);font-size:.95rem}
+.spec-strip{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.78rem;padding:3px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-block:8px}
+nav.tabs .wrap::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:1px solid transparent;background:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600;color:var(--muted);white-space:nowrap}
+.tab:hover{color:var(--ink);background:var(--surface)}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--surface);}
+.tab .n{font-family:var(--font-mono);font-size:.78rem;opacity:.8;margin-right:6px}
+
+main .wrap{padding-block:22px 60px}
+section.panel{display:grid;gap:22px}
+.lead{max-width:68ch;color:var(--muted);font-size:1.03rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.prose{display:grid;gap:12px;max-width:72ch}
+.prose ul,.prose ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
+.eyebrow{font-size:.8rem;letter-spacing:.06em;color:var(--accent);font-weight:700;text-transform:uppercase}
+.note{border-left:4px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note.bad{border-color:var(--bad);background:var(--bad-soft)}
+.note.ok{border-color:var(--ok);background:var(--ok-soft)}
+.formula{font-family:var(--font-mono);background:var(--surface-2);border:1px dashed var(--line);padding:10px 12px;border-radius:8px;overflow-x:auto;white-space:nowrap}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-weight:700}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* બટન */
+.btn{border:1px solid var(--line);background:var(--surface);padding:7px 13px;border-radius:8px;cursor:pointer;font-weight:600;line-height:1.3}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.primary:hover:not(:disabled){filter:brightness(1.08);color:var(--surface)}
+.btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.field{display:grid;gap:4px}
+.field label,.lbl{font-size:.85rem;color:var(--muted);font-weight:600}
+select,input[type=number],input[type=text]{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;min-width:0}
+input[type=range]{width:100%;accent-color:var(--accent)}
+
+/* સિમ્યુલેટર */
+.steps{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
+.steps li{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:.9rem;color:var(--muted)}
+.steps li b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--surface-2);font-family:var(--font-mono);font-size:.8rem;color:var(--muted)}
+.steps li.active{border-color:var(--accent);color:var(--ink)}
+.steps li.active b{background:var(--accent);color:var(--surface)}
+.steps li.done b{background:var(--ok);color:var(--surface)}
+.sim{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.sim{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stage svg{display:block;width:100%;height:auto;touch-action:pan-y;cursor:ew-resize;user-select:none}
+.stage .cap{position:absolute;left:12px;top:10px;font-size:.8rem;color:var(--muted);font-weight:600;pointer-events:none}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:color-mix(in srgb,var(--surface) 82%,transparent);padding:20px;text-align:center}
+.overlay div{max-width:32ch;font-weight:600}
+.dial-box{display:grid;gap:12px}
+.dial-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center}
+.dial-card svg{width:min(100%,340px);height:auto}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;width:100%}
+.ro{background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.ro .k{font-size:.76rem;color:var(--muted);font-weight:600}
+.ro .v{font-family:var(--font-mono);font-size:1.15rem;font-weight:600;font-variant-numeric:tabular-nums}
+.ctrl{display:grid;gap:14px}
+.ctrl-group{display:grid;gap:8px;padding:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.ctrl-group h4{display:flex;align-items:center;gap:8px}
+.ctrl-group h4 .step-n{font-family:var(--font-mono);font-size:.78rem;background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:999px}
+.ctrl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.inline{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.msg{font-size:.92rem;padding:8px 12px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line)}
+.msg.ok{background:var(--ok-soft);border-color:var(--ok);}
+.msg.bad{background:var(--bad-soft);border-color:var(--bad);}
+.msg.warn{background:var(--warn-soft);border-color:var(--warn);}
+.tilt-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.chart svg{width:100%;height:auto;display:block}
+.rec-table td,.rec-table th{text-align:center}
+.rec-table td.cell-ok{background:var(--ok-soft)}
+.rec-table td.cell-bad{background:var(--bad-soft)}
+.badge{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.badge.ok{color:var(--ok)} .badge.bad{color:var(--bad)} .badge.warn{color:var(--warn)}
+
+/* SVG રંગ વર્ગો */
+.s-face{fill:var(--face)} .s-ink{fill:var(--face-ink)} .s-tick{stroke:var(--face-ink)}
+.s-bezel{fill:var(--steel-2);stroke:var(--steel-3);stroke-width:1}
+.s-bezel-in{fill:none;stroke:var(--steel-1);stroke-width:3}
+.s-ptr{fill:var(--pointer)} .s-ptr-l{stroke:var(--pointer)}
+.s-hub{fill:var(--steel-3)}
+.s-steel{fill:var(--steel-1);stroke:var(--steel-3);stroke-width:1}
+.s-steel-d{fill:var(--steel-2);stroke:var(--steel-3);stroke-width:1}
+.s-grip{fill:var(--grip)}
+.s-work{fill:var(--work);stroke:var(--hatch);stroke-width:1}
+.s-hatch{stroke:var(--hatch);stroke-width:1}
+.s-line{stroke:var(--muted);fill:none}
+.s-acc{stroke:var(--accent);fill:none}
+.s-acc-f{fill:var(--accent)}
+.s-txt{fill:var(--ink);font-family:var(--font-body)}
+.s-mut{fill:var(--muted);font-family:var(--font-body)}
+.s-mono{font-family:var(--font-mono)}
+.s-contact{fill:var(--pointer)}
+.s-bg{fill:var(--surface)}
+.s-grid{stroke:var(--line)}
+.s-guide{fill:none;stroke:var(--steel-3);stroke-width:2.5}
+
+/* પ્રેક્ટિસ & MCQ */
+.q-card{display:grid;gap:14px}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:9px;background:var(--surface);cursor:pointer;line-height:1.5}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt .key{flex:0 0 auto;font-family:var(--font-mono);font-weight:600;color:var(--accent);width:1.4em}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.progress{height:6px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.qmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+.big-score{font-family:var(--font-display);font-size:3rem;font-weight:800;line-height:1}
+.review-item{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:4px}
+.parts-legend{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:p}
+.parts-legend li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.parts-legend li::before{counter-increment:p;content:counter(p);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--surface);font-family:var(--font-mono);font-size:.8rem;margin-top:2px}
+.proc{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s}
+.proc li{display:grid;grid-template-columns:34px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.proc li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-mono);font-weight:600}
+.proc li h4{margin-bottom:2px}
+svg text{user-select:none}
+footer{border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
+footer .wrap{padding-block:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>ડાયલ <span>બોર ગેજ</span> સિમ્યુલેટર</h1>
+      <p>ITI ફિટર · ટર્નર · મશીનિસ્ટ · મિકેનિક મોટર વ્હીકલ — અંદરના વ્યાસનું ચોકસાઈપૂર્વક માપન</p>
+    </div>
+    <div class="spec-strip" aria-label="ગેજની મુખ્ય વિગતો">
+      <span class="chip">લઘુત્તમ માપ 0.01 mm</span>
+      <span class="chip">1 ફેરો = 1 mm</span>
+      <span class="chip">તુલનાત્મક સાધન</span>
+      <span class="chip">ટર્નિંગ પોઇન્ટ = સાચો વ્યાસ</span>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="વિભાગો">
+  <div class="wrap" role="tablist">
+    <button class="tab" role="tab" data-tab="theory" aria-selected="false"><span class="n">1</span>થીયરી</button>
+    <button class="tab" role="tab" data-tab="parts" aria-selected="false"><span class="n">2</span>ભાગો અને રચના</button>
+    <button class="tab" role="tab" data-tab="sim" aria-selected="true"><span class="n">3</span>સિમ્યુલેટર</button>
+    <button class="tab" role="tab" data-tab="read" aria-selected="false"><span class="n">4</span>રીડિંગ પ્રેક્ટિસ</button>
+    <button class="tab" role="tab" data-tab="test" aria-selected="false"><span class="n">5</span>ટેસ્ટિંગ પદ્ધતિ</button>
+    <button class="tab" role="tab" data-tab="mcq" aria-selected="false"><span class="n">6</span>MCQ ટેસ્ટ</button>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<!-- ===================== 1. થીયરી ===================== -->
+<section class="panel" id="tab-theory" hidden>
+  <div class="prose">
+    <span class="eyebrow">પ્રકરણ 1 · થીયરી</span>
+    <h2>ડાયલ બોર ગેજ શું છે?</h2>
+    <p class="lead">ડાયલ બોર ગેજ એ <b>છિદ્ર (બોર)નો અંદરનો વ્યાસ</b> માપવા માટેનું <b>તુલનાત્મક (Comparator) સાધન</b> છે. તે સીધું માપ બતાવતું નથી. પહેલાં તેને જાણીતા માપ (સેટિંગ રીંગ ગેજ અથવા આઉટસાઇડ માઇક્રોમીટર) પર ઝીરો કરવામાં આવે છે, પછી બોરમાં મૂકીને તે માપથી કેટલો ફરક છે તે ડાયલ પર વંચાય છે.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card prose">
+      <h3>ક્યાં ઉપયોગ થાય છે?</h3>
+      <ul>
+        <li>એન્જિન સિલિન્ડર બોરનો ઘસારો, <b>ઓવાલિટી</b> અને <b>ટેપર</b> માપવા</li>
+        <li>હાઇડ્રોલિક / ન્યુમેટિક સિલિન્ડરના બોરની તપાસ</li>
+        <li>બેરિંગ હાઉસિંગ, ગિયર બોક્સ હાઉસિંગ, બુશના બોર</li>
+        <li>કનેક્ટિંગ રોડનો મોટો છેડો (બિગ એન્ડ) અને મેઇન બેરિંગ બોર</li>
+        <li>ઉત્પાદનમાં એક જ માપના ઘણા બોર ઝડપથી તપાસવા</li>
+      </ul>
+    </div>
+    <div class="card prose">
+      <h3>કાર્ય સિદ્ધાંત</h3>
+      <p>માપન હેડમાં એક બાજુ <b>સ્થિર એન્વિલ</b> (એક્સ્ટેન્શન રોડ) અને સામેની બાજુ સ્પ્રિંગવાળો <b>ગતિશીલ પ્લન્જર</b> હોય છે. પ્લન્જર આડી દિશામાં ખસે છે. હેડની અંદરનો <b>વેજ / બેલ-ક્રેન્ક લીવર</b> આ ગતિને 90° ફેરવીને ઊભી <b>પુશ રોડ</b>માં મોકલે છે, જે ઉપર રહેલા ડાયલ ઇન્ડિકેટરના સ્પિન્ડલને ધકેલે છે.</p>
+      <p>ગુણોત્તર સામાન્ય રીતે 1:1 હોય છે, એટલે પ્લન્જર 0.01 mm ખસે તો પોઇન્ટર 1 વિભાગ ખસે.</p>
+    </div>
+  </div>
+
+  <div class="card prose" style="max-width:none">
+    <h3>ટર્નિંગ પોઇન્ટ અને કોસાઇન ભૂલ — સૌથી મહત્વનો સિદ્ધાંત</h3>
+    <div class="grid-2" style="align-items:center">
+      <div class="prose">
+        <p>બોરમાં ગેજ સહેજ પણ ત્રાંસુ (કોણ α) હોય તો પ્લન્જર અને એન્વિલ વચ્ચેની રેખા વ્યાસ કરતાં લાંબી થાય છે:</p>
+        <div class="formula">L = D ÷ cos α &nbsp;&nbsp;→&nbsp;&nbsp; ભૂલ = D (1/cos α − 1)</div>
+        <p>એટલે ગેજને આગળ-પાછળ હલાવતાં (રોકિંગ) જ્યારે ગેજ બોરની ધરીને બરાબર લંબ હોય ત્યારે અંતર <b>સૌથી ઓછું</b> થાય છે. આ સ્થિતિમાં પોઇન્ટર સૌથી વધુ ઘડિયાળની દિશામાં જઈને <b>પાછો વળે</b> છે. આ બિંદુને <b>ટર્નિંગ પોઇન્ટ</b> કહે છે, અને ત્યાંનું રીડિંગ જ સાચો વ્યાસ છે.</p>
+        <p class="note">ઉદાહરણ: Ø 76 mm બોરમાં ગેજ માત્ર 3° ત્રાંસુ હોય તો ભૂલ = 76 × (1/cos 3° − 1) ≈ <b class="mono">0.10 mm</b>, એટલે કે 10 વિભાગ!</p>
+      </div>
+      <div>
+        <svg viewBox="0 0 320 210" role="img" aria-label="બોરમાં ત્રાંસુ ગેજ અને કોસાઇન ભૂલનું ચિત્ર">
+          <rect class="s-work" x="10" y="20" width="50" height="170"/>
+          <rect class="s-work" x="260" y="20" width="50" height="170"/>
+          <line class="s-line" x1="60" y1="105" x2="260" y2="105" stroke-dasharray="5 4"/>
+          <line class="s-acc" x1="60" y1="80" x2="260" y2="130" stroke-width="3"/>
+          <circle class="s-contact" cx="60" cy="80" r="4"/><circle class="s-contact" cx="260" cy="130" r="4"/>
+          <text class="s-mut" x="160" y="98" text-anchor="middle" font-size="12">D (સાચો વ્યાસ)</text>
+          <text class="s-txt" x="175" y="140" text-anchor="middle" font-size="12" font-weight="700">L = D / cos α</text>
+          <path class="s-line" d="M110 105 A50 50 0 0 1 108 92"/>
+          <text class="s-mut" x="116" y="97" font-size="12">α</text>
+          <text class="s-mut" x="160" y="200" text-anchor="middle" font-size="11">ત્રાંસી રેખા હંમેશાં વ્યાસ કરતાં લાંબી</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card prose">
+      <h3>પોઇન્ટરની દિશાનો અર્થ</h3>
+      <div class="tbl-wrap"><table>
+        <tr><th>ટર્નિંગ પોઇન્ટ પર પોઇન્ટર</th><th>અર્થ</th><th>ગણતરી</th></tr>
+        <tr><td>ઝીરો પર જ</td><td>બોર = સેટિંગ માપ</td><td class="mono">D = N</td></tr>
+        <tr><td>ઘડિયાળની દિશામાં (+)</td><td>પ્લન્જર વધુ દબાયો → બોર <b>નાનો</b></td><td class="mono">D = N − રીડિંગ</td></tr>
+        <tr><td>ઘડિયાળથી ઊલટી દિશામાં (−)</td><td>પ્લન્જર બહાર આવ્યો → બોર <b>મોટો</b></td><td class="mono">D = N + રીડિંગ</td></tr>
+      </table></div>
+      <p class="note warn">યાદ રાખો: બોર ગેજમાં "ઘડિયાળની દિશા = નાનો બોર". આઉટસાઇડ માપન કરતાં આ ઊંધું લાગે છે.</p>
+    </div>
+    <div class="card prose">
+      <h3>લઘુત્તમ માપ (Least Count)</h3>
+      <div class="formula">LC = 1 ફેરાની ગતિ ÷ ડાયલના કુલ વિભાગ = 1 mm ÷ 100 = 0.01 mm</div>
+      <ul>
+        <li>મેટ્રિક સામાન્ય ગેજ: <b class="mono">0.01 mm</b> (100 વિભાગ)</li>
+        <li>ઉચ્ચ ચોકસાઈ ગેજ: <b class="mono">0.001 mm</b> (1 ફેરો = 0.2 mm)</li>
+        <li>ઇંચ ગેજ: <b class="mono">0.0005″</b> અથવા <b class="mono">0.0001″</b></li>
+        <li>નાનો <b>ફેરા ગણક (Revolution counter)</b> પૂરા ફેરા એટલે કે mm બતાવે છે.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card prose">
+      <h3>ઓવાલિટી</h3>
+      <p>એક જ ઊંડાઈએ બે પરસ્પર લંબ દિશામાં (A-A અને B-B) માપનો તફાવત.</p>
+      <div class="formula">ઓવાલિટી = | A − B |</div>
+    </div>
+    <div class="card prose">
+      <h3>ટેપર</h3>
+      <p>એક જ દિશામાં બોરના ઉપરના અને નીચેના માપનો તફાવત.</p>
+      <div class="formula">ટેપર = | ઉપર − નીચે |</div>
+    </div>
+    <div class="card prose">
+      <h3>ઘસારો</h3>
+      <p>મહત્તમ માપેલો વ્યાસ અને સ્ટાન્ડર્ડ (નોમિનલ) વ્યાસનો તફાવત.</p>
+      <div class="formula">ઘસારો = Dmax − N</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card prose">
+      <h3>બોર ગેજના પ્રકાર</h3>
+      <ul>
+        <li><b>2-પોઇન્ટ ડાયલ બોર ગેજ:</b> સામાન્ય વર્કશોપ ગેજ; સેન્ટ્રલાઇઝર સાથે, રોકિંગ જરૂરી.</li>
+        <li><b>3-પોઇન્ટ બોર ગેજ (ઇન્ટરનલ માઇક્રોમીટર પ્રકાર):</b> સ્વયં કેન્દ્રિત થાય; રોકિંગની જરૂર ઓછી.</li>
+        <li><b>ડિજિટલ બોર ગેજ:</b> ડાયલની જગ્યાએ ડિજિટલ ડિસ્પ્લે; ડેટા આઉટપુટ.</li>
+        <li><b>એર બોર ગેજ:</b> હવાના દબાણથી માપ; ઉત્પાદન લાઇનમાં સંપર્ક વગરનું ઝડપી માપ.</li>
+        <li><b>સ્મોલ હોલ / ટેલિસ્કોપિક ગેજ:</b> માપ ટ્રાન્સફર કરતા સાધનો (ડાયલ વગર).</li>
+      </ul>
+    </div>
+    <div class="card prose">
+      <h3>ફાયદા અને મર્યાદા</h3>
+      <ul>
+        <li>✔ ઊંડા બોરમાં કોઈ પણ ઊંડાઈએ માપ લઈ શકાય.</li>
+        <li>✔ ઓવાલિટી અને ટેપર ઝડપથી જાણી શકાય.</li>
+        <li>✔ એક જ સેટિંગથી ઘણા ભાગ ઝડપી તપાસ.</li>
+        <li>✘ સીધું માપ નથી — સેટિંગ માસ્ટર જરૂરી.</li>
+        <li>✘ રેન્જ મર્યાદિત; દરેક માપ માટે એક્સ્ટેન્શન રોડ બદલવો પડે.</li>
+        <li>✘ રોકિંગ કૌશલ્ય વગર કોસાઇન ભૂલ આવે.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card prose" style="max-width:none">
+    <h3>ભૂલોના સ્ત્રોત</h3>
+    <div class="tbl-wrap"><table>
+      <tr><th>ભૂલ</th><th>કારણ</th><th>ઉપાય</th></tr>
+      <tr><td>કોસાઇન ભૂલ</td><td>ગેજ ત્રાંસુ રાખીને રીડિંગ</td><td>હંમેશાં ટર્નિંગ પોઇન્ટ પર વાંચો</td></tr>
+      <tr><td>ઝીરો ભૂલ</td><td>સેટિંગ વખતે ટર્નિંગ પોઇન્ટ પર ઝીરો ન કર્યું, બેઝલ લોક ન કર્યું</td><td>રોકિંગ કરીને ઝીરો, પછી લોક</td></tr>
+      <tr><td>પેરેલેક્ષ ભૂલ</td><td>ડાયલ ત્રાંસી નજરે વાંચવું</td><td>આંખ ડાયલની બરાબર સામે</td></tr>
+      <tr><td>તાપમાન ભૂલ</td><td>હાથની ગરમી, ગરમ જોબ</td><td>ઇન્સ્યુલેટેડ હેન્ડલ પકડો; જોબ 20°C પર ઠંડો થવા દો</td></tr>
+      <tr><td>કેન્દ્ર બહાર ભૂલ</td><td>ગેજ વ્યાસ રેખા પર નથી (કોર્ડ માપાય)</td><td>સેન્ટ્રલાઇઝર બરાબર બેસાડો</td></tr>
+      <tr><td>ગંદકી / બર</td><td>બોર કે એન્વિલ પર તેલ, કાર્બન, ચીપ્સ</td><td>માપ પહેલાં સાફ કરો</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ===================== 2. ભાગો ===================== -->
+<section class="panel" id="tab-parts" hidden>
+  <div class="prose">
+    <span class="eyebrow">પ્રકરણ 2 · ભાગો અને રચના</span>
+    <h2>ડાયલ બોર ગેજના ભાગો</h2>
+    <p class="lead">ચિત્રમાં દરેક નંબર નીચેની યાદીના ભાગ સાથે મેળ ખાય છે.</p>
+  </div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card">
+      <svg viewBox="0 0 420 520" role="img" aria-label="ડાયલ બોર ગેજનું નામ સાથેનું ચિત્ર">
+        <!-- ડાયલ -->
+        <circle class="s-bezel" cx="150" cy="78" r="58"/>
+        <circle class="s-face" cx="150" cy="78" r="48"/>
+        <g id="partsTicks"></g>
+        <line class="s-ptr-l" x1="150" y1="78" x2="178" y2="42" stroke-width="3" stroke-linecap="round"/>
+        <circle class="s-hub" cx="150" cy="78" r="4"/>
+        <circle class="s-face" cx="150" cy="100" r="11" stroke="var(--face-ink)" stroke-width=".6"/>
+        <line class="s-tick" x1="150" y1="100" x2="155" y2="93" stroke-width="1.4"/>
+        <!-- લોક સ્ક્રુ -->
+        <rect class="s-steel-d" x="207" y="70" width="18" height="16" rx="3"/>
+        <!-- સ્ટેમ અને ક્લેમ્પ -->
+        <rect class="s-steel" x="140" y="136" width="20" height="22" rx="3"/>
+        <rect class="s-steel" x="144" y="158" width="12" height="290"/>
+        <rect class="s-grip" x="132" y="190" width="36" height="120" rx="8"/>
+        <g class="s-hatch" opacity=".5"><line x1="134" y1="205" x2="166" y2="205"/><line x1="134" y1="220" x2="166" y2="220"/><line x1="134" y1="235" x2="166" y2="235"/><line x1="134" y1="250" x2="166" y2="250"/><line x1="134" y1="265" x2="166" y2="265"/><line x1="134" y1="280" x2="166" y2="280"/><line x1="134" y1="295" x2="166" y2="295"/></g>
+        <line x1="150" y1="320" x2="150" y2="440" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"/>
+        <!-- હેડ -->
+        <rect class="s-steel" x="105" y="440" width="90" height="36" rx="5"/>
+        <rect class="s-steel-d" x="35" y="452" width="70" height="12"/>
+        <circle class="s-steel-d" cx="34" cy="458" r="6"/>
+        <rect class="s-steel" x="98" y="446" width="7" height="24"/>
+        <rect class="s-steel-d" x="195" y="453" width="40" height="10"/>
+        <circle class="s-steel-d" cx="236" cy="458" r="5"/>
+        <path class="s-guide" d="M200 438 Q238 438 244 458 Q238 478 200 478"/>
+        <path d="M150 468 L168 448 L176 456" fill="none" stroke="var(--pointer)" stroke-width="2"/>
+        <!-- લેબલ -->
+        <g font-size="12" class="s-txt" font-weight="700">
+          <g><line class="s-line" x1="195" y1="40" x2="300" y2="30"/><circle class="s-acc-f" cx="312" cy="30" r="10"/><text x="312" y="34" text-anchor="middle" fill="var(--surface)">1</text></g>
+          <g><line class="s-line" x1="205" y1="100" x2="300" y2="80"/><circle class="s-acc-f" cx="312" cy="80" r="10"/><text x="312" y="84" text-anchor="middle" fill="var(--surface)">2</text></g>
+          <g><line class="s-line" x1="225" y1="78" x2="300" y2="130"/><circle class="s-acc-f" cx="312" cy="130" r="10"/><text x="312" y="134" text-anchor="middle" fill="var(--surface)">3</text></g>
+          <g><line class="s-line" x1="161" y1="100" x2="300" y2="180"/><circle class="s-acc-f" cx="312" cy="180" r="10"/><text x="312" y="184" text-anchor="middle" fill="var(--surface)">4</text></g>
+          <g><line class="s-line" x1="168" y1="250" x2="300" y2="230"/><circle class="s-acc-f" cx="312" cy="230" r="10"/><text x="312" y="234" text-anchor="middle" fill="var(--surface)">5</text></g>
+          <g><line class="s-line" x1="152" y1="380" x2="300" y2="280"/><circle class="s-acc-f" cx="312" cy="280" r="10"/><text x="312" y="284" text-anchor="middle" fill="var(--surface)">6</text></g>
+          <g><line class="s-line" x1="160" y1="472" x2="300" y2="330"/><circle class="s-acc-f" cx="312" cy="330" r="10"/><text x="312" y="334" text-anchor="middle" fill="var(--surface)">7</text></g>
+          <g><line class="s-line" x1="236" y1="463" x2="300" y2="380"/><circle class="s-acc-f" cx="312" cy="380" r="10"/><text x="312" y="384" text-anchor="middle" fill="var(--surface)">8</text></g>
+          <g><line class="s-line" x1="244" y1="470" x2="300" y2="430"/><circle class="s-acc-f" cx="312" cy="430" r="10"/><text x="312" y="434" text-anchor="middle" fill="var(--surface)">9</text></g>
+          <g><line class="s-line" x1="60" y1="464" x2="60" y2="500"/><line class="s-line" x1="60" y1="500" x2="300" y2="480"/><circle class="s-acc-f" cx="312" cy="480" r="10"/><text x="312" y="484" text-anchor="middle" fill="var(--surface)">10</text></g>
+          <g><line class="s-line" x1="101" y1="470" x2="101" y2="510"/><line class="s-line" x1="101" y1="510" x2="360" y2="510"/><circle class="s-acc-f" cx="372" cy="505" r="10"/><text x="372" y="509" text-anchor="middle" fill="var(--surface)">11</text></g>
+        </g>
+      </svg>
+    </div>
+    <div class="card prose">
+      <h3>ભાગોની યાદી અને કાર્ય</h3>
+      <ol class="parts-legend">
+        <li><div><b>ડાયલ ઇન્ડિકેટર</b> — 0.01 mm વિભાગવાળો મુખ્ય સ્કેલ અને પોઇન્ટર; પ્લન્જરની ગતિ બતાવે.</div></li>
+        <li><div><b>બેઝલ (ફરતી રીંગ)</b> — સ્કેલ ફેરવીને ઝીરોને પોઇન્ટર સામે લાવવા.</div></li>
+        <li><div><b>બેઝલ લોક સ્ક્રુ</b> — ઝીરો કર્યા પછી બેઝલ ન ફરે તે માટે કસવો.</div></li>
+        <li><div><b>ફેરા ગણક (Revolution counter)</b> — પોઇન્ટરના પૂરા ફેરા (mm) ગણે.</div></li>
+        <li><div><b>ઇન્સ્યુલેટેડ હેન્ડલ (ગ્રીપ)</b> — હાથની ગરમી સ્ટેમ સુધી ન પહોંચે તે માટે.</div></li>
+        <li><div><b>સ્ટેમ અને પુશ રોડ</b> — હેડથી ડાયલ સુધી ગતિ પહોંચાડે; લાંબા સ્ટેમથી ઊંડા બોર માપાય.</div></li>
+        <li><div><b>વેજ / લીવર મિકેનિઝમ</b> — પ્લન્જરની આડી ગતિને 90° ફેરવીને ઊભી કરે.</div></li>
+        <li><div><b>ગતિશીલ પ્લન્જર (Measuring contact)</b> — સ્પ્રિંગ દબાણથી બોરની દીવાલને અડે.</div></li>
+        <li><div><b>સેન્ટ્રલાઇઝિંગ ગાઇડ (બ્રિજ)</b> — ગેજને બોરની વ્યાસ રેખા પર રાખે; કોર્ડ ભૂલ અટકાવે.</div></li>
+        <li><div><b>એક્સ્ટેન્શન રોડ (સ્થિર એન્વિલ)</b> — માપની રેન્જ નક્કી કરે; જુદી લંબાઈના મળે.</div></li>
+        <li><div><b>વોશર / શિમ</b> — રોડ સાથે લગાવી માપ 1 mmના ક્રમમાં ગોઠવવા.</div></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card prose">
+      <h3>અંદરની ગતિ: પ્લન્જરથી પોઇન્ટર સુધી</h3>
+      <svg viewBox="0 0 360 200" role="img" aria-label="પ્લન્જર, વેજ અને પુશ રોડની ગતિ">
+        <rect class="s-steel" x="70" y="110" width="220" height="60" rx="6"/>
+        <rect class="s-steel-d" x="230" y="132" width="90" height="16"/>
+        <circle class="s-contact" cx="322" cy="140" r="5"/>
+        <polygon class="s-steel-d" points="160,165 225,140 225,165"/>
+        <polygon points="160,165 225,140 225,165" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        <rect class="s-steel-d" x="150" y="20" width="14" height="128"/>
+        <polygon class="s-steel-d" points="150,148 164,148 172,160 150,160"/>
+        <path d="M340 115 L300 115" stroke="var(--pointer)" stroke-width="2.5" marker-end="url(#ar)"/>
+        <path d="M185 70 L185 30" stroke="var(--pointer)" stroke-width="2.5" marker-end="url(#ar)"/>
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="var(--pointer)"/></marker></defs>
+        <text class="s-txt" x="300" y="104" font-size="12" text-anchor="middle">પ્લન્જર અંદર</text>
+        <text class="s-txt" x="196" y="52" font-size="12">પુશ રોડ ઉપર → ડાયલ</text>
+        <text class="s-mut" x="190" y="192" font-size="12" text-anchor="middle">વેજ (ઢાળ) ગતિને 90° ફેરવે છે</text>
+      </svg>
+    </div>
+    <div class="card prose">
+      <h3>સામાન્ય ગેજ સેટની વિગત (ઉદાહરણ)</h3>
+      <div class="tbl-wrap"><table>
+        <tr><th>ગેજ મોડેલ રેન્જ</th><th class="num">LC</th><th class="num">પ્લન્જર ગતિ</th><th>એક્સ્ટેન્શન</th></tr>
+        <tr><td>18 – 35 mm</td><td class="num">0.01</td><td class="num">≈1.2 mm</td><td>7 રોડ + વોશર</td></tr>
+        <tr><td>35 – 60 mm</td><td class="num">0.01</td><td class="num">≈1.6 mm</td><td>5 રોડ + વોશર</td></tr>
+        <tr><td>50 – 160 mm</td><td class="num">0.01</td><td class="num">≈2.0 mm</td><td>12 રોડ + વોશર</td></tr>
+        <tr><td>160 – 250 mm</td><td class="num">0.01</td><td class="num">≈2.0 mm</td><td>લાંબા રોડ</td></tr>
+      </table></div>
+      <p class="note">રોડ + વોશરની લંબાઈ = નોમિનલ માપ. પ્લન્જર થોડો દબાયેલો (પ્રીલોડ) રહે જેથી બોર મોટો કે નાનો બંને વંચાય.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. સિમ્યુલેટર ===================== -->
+<section class="panel" id="tab-sim">
+  <div class="prose" style="max-width:none">
+    <span class="eyebrow">પ્રકરણ 3 · લાઇવ સિમ્યુલેટર</span>
+    <h2>બોર માપો: સેટ કરો, ઝીરો કરો, ટર્નિંગ પોઇન્ટ શોધો</h2>
+    <p class="lead">ચિત્ર પર ડાબે-જમણે ખેંચો અથવા "નમન કોણ" સ્લાઇડર ફેરવીને ગેજને હલાવો. પોઇન્ટર જ્યાં પાછો વળે ત્યાંનું રીડિંગ નોંધો.</p>
+  </div>
+
+  <ol class="steps" id="steps">
+    <li data-s="1"><b>1</b>ગેજ જોડો</li>
+    <li data-s="2"><b>2</b>રીંગમાં ઝીરો અને લોક</li>
+    <li data-s="3"><b>3</b>જોબમાં 6 માપ</li>
+    <li data-s="4"><b>4</b>રિપોર્ટ અને નિર્ણય</li>
+  </ol>
+
+  <div class="sim">
+    <div class="stage" id="stage">
+      <span class="cap" id="stageCap">કાપ દ્રશ્ય</span>
+      <svg id="scene" viewBox="0 0 400 420" aria-label="બોરમાં ગેજનું કાપ દ્રશ્ય"></svg>
+      <div class="overlay" id="overlay"><div>પહેલાં નીચે "પગલું 1"માં જોબ માટે યોગ્ય એક્સ્ટેન્શન રોડ અને વોશર પસંદ કરી ગેજ જોડો.</div></div>
+    </div>
+    <div class="dial-box">
+      <div class="dial-card">
+        <svg id="dial" aria-label="ડાયલ ઇન્ડિકેટર"></svg>
+        <div class="readout" id="helper">
+          <div class="ro"><div class="k">સ્કેલ પર રીડિંગ</div><div class="v" id="roScale">—</div></div>
+          <div class="ro"><div class="k">ઝીરોથી દિશા</div><div class="v" id="roDir">—</div></div>
+          <div class="ro"><div class="k">નમન કોણ α</div><div class="v" id="roTilt">0.0°</div></div>
+          <div class="ro"><div class="k">ટર્નિંગ પોઇન્ટ</div><div class="v" id="roTurn">—</div></div>
+        </div>
+      </div>
+      <div class="card chart" id="chartCard">
+        <div class="lbl">પોઇન્ટર વિરુદ્ધ નમન કોણ — વળાંકની ટોચ એ ટર્નિંગ પોઇન્ટ</div>
+        <svg id="chart" viewBox="0 0 320 160" aria-label="નમન કોણ સાથે પોઇન્ટરનો ગ્રાફ"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <div class="tilt-row">
+      <span class="lbl">નમન કોણ</span>
+      <input type="range" id="tilt" min="-8" max="8" step="0.1" value="0" aria-label="ગેજનો નમન કોણ">
+      <button class="btn" id="btnRock" aria-pressed="false">આપોઆપ હલાવો</button>
+    </div>
+    <div class="msg" id="simMsg">જોબ પસંદ કરો અને ગેજ જોડો.</div>
+  </div>
+
+  <div class="ctrl-grid">
+    <div class="ctrl-group">
+      <h4><span class="step-n">પગલું 1</span>જોબ અને ગેજ જોડાણ</h4>
+      <div class="field"><label for="jobSel">જોબ (કામ)</label><select id="jobSel"></select></div>
+      <div class="inline">
+        <div class="field"><label for="rodSel">એક્સ્ટેન્શન રોડ</label><select id="rodSel"></select></div>
+        <div class="field"><label for="washSel">વોશર</label><select id="washSel"></select></div>
+        <button class="btn primary" id="btnAssemble">ગેજ જોડો</button>
+      </div>
+      <div class="field"><label for="modeSel">મોડ</label>
+        <select id="modeSel"><option value="practice">અભ્યાસ — મદદ સાથે</option><option value="exam">પરીક્ષા — મદદ વગર, અંતે ગુણ</option></select></div>
+      <div class="field"><label for="dialStyle">ડાયલ સ્કેલ</label>
+        <select id="dialStyle"><option value="cont">સતત 0–100</option><option value="bal">સંતુલિત 0–50–0</option></select></div>
+    </div>
+
+    <div class="ctrl-group">
+      <h4><span class="step-n">પગલું 2</span>સેટિંગ રીંગમાં ઝીરો</h4>
+      <div class="btn-row">
+        <button class="btn on" id="btnRing">સેટિંગ રીંગમાં મૂકો</button>
+        <button class="btn" id="btnJob">જોબમાં મૂકો</button>
+      </div>
+      <div class="lbl">બેઝલ ફેરવો</div>
+      <div class="btn-row">
+        <button class="btn" data-bz="-10">−10</button>
+        <button class="btn" data-bz="-1">−1</button>
+        <button class="btn" data-bz="1">+1</button>
+        <button class="btn" data-bz="10">+10</button>
+        <button class="btn primary" id="btnZero">પોઇન્ટર પર ઝીરો</button>
+      </div>
+      <label class="btn-row" style="cursor:pointer"><input type="checkbox" id="lockChk"> <span>બેઝલ લોક સ્ક્રુ કસો</span></label>
+    </div>
+
+    <div class="ctrl-group">
+      <h4><span class="step-n">પગલું 3</span>જોબમાં માપ</h4>
+      <div class="lbl">ઊંડાઈ</div>
+      <div class="btn-row" id="lvlBtns">
+        <button class="btn on" data-lvl="0">ઉપર</button>
+        <button class="btn" data-lvl="1">મધ્ય</button>
+        <button class="btn" data-lvl="2">નીચે</button>
+      </div>
+      <div class="lbl">દિશા</div>
+      <div class="btn-row" id="dirBtns">
+        <button class="btn on" data-dir="A">A-A (થ્રસ્ટ બાજુ)</button>
+        <button class="btn" data-dir="B">B-B (90° પર)</button>
+      </div>
+      <div class="inline">
+        <div class="field"><label for="measIn">વ્યાસ (mm)</label><input type="number" id="measIn" step="0.01" inputmode="decimal" placeholder="દા.ત. 76.04" style="width:9em"></div>
+        <button class="btn primary" id="btnRecord">નોંધો</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="reportCard">
+    <div class="inline" style="justify-content:space-between">
+      <h3>નિરીક્ષણ રિપોર્ટ <span class="mono" id="repTitle" style="font-size:.9rem;color:var(--muted)"></span></h3>
+      <button class="btn" id="btnNew">નવો જોબ</button>
+    </div>
+    <div class="tbl-wrap" style="margin-top:10px">
+      <table class="rec-table" id="recTable"></table>
+    </div>
+    <div style="margin-top:12px;display:grid;gap:10px">
+      <div class="lbl" id="specLine"></div>
+      <div class="inline">
+        <span class="lbl">તમારો નિર્ણય:</span>
+        <label><input type="radio" name="verdict" value="ok" id="vOk"> સ્વીકાર્ય</label>
+        <label><input type="radio" name="verdict" value="rej" id="vRej"> અસ્વીકાર્ય (રીબોર / હોનિંગ / બદલો)</label>
+        <button class="btn primary" id="btnCheck">રિપોર્ટ તપાસો</button>
+      </div>
+      <div id="repResult"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4. રીડિંગ પ્રેક્ટિસ ===================== -->
+<section class="panel" id="tab-read" hidden>
+  <div class="prose">
+    <span class="eyebrow">પ્રકરણ 4 · રીડિંગ પ્રેક્ટિસ</span>
+    <h2>ડાયલ વાંચવાની ઝડપી પ્રેક્ટિસ</h2>
+    <p class="lead">દરેક પ્રશ્નમાં ડાયલ ટર્નિંગ પોઇન્ટ પરનું રીડિંગ બતાવે છે. જવાબ mmમાં બે દશાંશ સુધી લખો.</p>
+  </div>
+  <div class="grid-2" style="align-items:start">
+    <div class="dial-card"><svg id="pDial" aria-label="પ્રેક્ટિસ ડાયલ"></svg></div>
+    <div class="card q-card">
+      <div class="qmeta"><span>પ્રશ્ન <b class="mono" id="pNo">1</b></span><span>સાચા: <b class="mono" id="pScore">0</b> · સળંગ: <b class="mono" id="pStreak">0</b></span></div>
+      <p id="pQ" style="font-size:1.08rem;font-weight:600"></p>
+      <div class="inline">
+        <div class="field"><label for="pIn">જવાબ (mm)</label><input type="number" id="pIn" step="0.01" inputmode="decimal" style="width:9em"></div>
+        <button class="btn primary" id="pCheck">તપાસો</button>
+        <button class="btn" id="pNext">આગળનો પ્રશ્ન</button>
+      </div>
+      <div id="pFb"></div>
+      <div class="note">
+        <b>રીત:</b> ઝીરોથી ઘડિયાળની દિશામાં હોય તો બોર નાનો (N − રીડિંગ), ઊલટી દિશામાં હોય તો બોર મોટો (N + રીડિંગ). સતત ડાયલમાં 50 પછીના આંકડા ઊલટી દિશા બતાવે છે: 100 − આંક.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 5. ટેસ્ટિંગ ===================== -->
+<section class="panel" id="tab-test" hidden>
+  <div class="prose">
+    <span class="eyebrow">પ્રકરણ 5 · ટેસ્ટિંગ પદ્ધતિ</span>
+    <h2>બોરનું ટેસ્ટિંગ કઈ રીતે કરવું</h2>
+    <p class="lead">નીચેની પદ્ધતિ એન્જિન સિલિન્ડર બોરના નિરીક્ષણ માટે છે; કોઈ પણ બોર માટે એ જ ક્રમ લાગુ પડે છે.</p>
+  </div>
+
+  <ol class="proc">
+    <li><div><h4>તૈયારી અને સફાઈ</h4><p>બોર અને ગેજ સાફ કરો. કાર્બન, તેલ અને બર દૂર કરો. જોબ અને ગેજને ઓરડાના તાપમાન (આદર્શ 20°C) પર આવવા દો.</p></div></li>
+    <li><div><h4>નોમિનલ માપ જાણો</h4><p>વર્કશોપ મેન્યુઅલમાંથી સ્ટાન્ડર્ડ બોર, ઘસારાની મર્યાદા, ઓવાલિટી અને ટેપરની મર્યાદા લખો. અથવા વર્નિયર કેલિપરથી અંદાજિત માપ લો.</p></div></li>
+    <li><div><h4>એક્સ્ટેન્શન રોડ અને વોશર પસંદ કરો</h4><p>રોડ + વોશર = નોમિનલ માપ. દા.ત. Ø 76: 75 mm રોડ + 1 mm વોશર. રોડ હાથથી કસો; પાનાથી વધુ નહીં.</p></div></li>
+    <li><div><h4>સેટિંગ માસ્ટર તૈયાર કરો</h4><p>સેટિંગ રીંગ ગેજ, અથવા આઉટસાઇડ માઇક્રોમીટરને નોમિનલ માપ પર સેટ કરીને લોક કરો (માઇક્રોમીટરને વાઇસમાં નરમ જડબાં સાથે પકડો).</p></div></li>
+    <li><div><h4>રોકિંગ કરીને ઝીરો સેટ કરો</h4><p>ગેજને માસ્ટરમાં મૂકી હળવેથી હલાવો. પોઇન્ટર જ્યાં ઘડિયાળની દિશામાં સૌથી વધુ જઈને પાછો વળે (ટર્નિંગ પોઇન્ટ) ત્યાં બેઝલ ફેરવી 0 લાવો. ફેરા ગણકનું રીડિંગ નોંધો. બેઝલ લોક કરો. 2–3 વાર ફરી તપાસો.</p></div></li>
+    <li><div><h4>બોરમાં દાખલ કરો</h4><p>ગાઇડ/પ્લન્જર બાજુ થોડી નમાવીને પહેલા દાખલ કરો, પછી સ્થિર એન્વિલ બાજુ. ગેજને ઝટકો આપશો નહીં.</p></div></li>
+    <li><div><h4>છ સ્થાને માપ લો</h4><p>ત્રણ ઊંડાઈ (ઉપર — રિંગ રિવર્સલ નીચે ≈10 mm, મધ્ય, નીચે — સ્કર્ટ વિસ્તાર) × બે દિશા (A-A ક્રેન્કશાફ્ટને લંબ / થ્રસ્ટ બાજુ, B-B સમાંતર). દરેક જગ્યાએ ટર્નિંગ પોઇન્ટ પર જ વાંચો.</p></div></li>
+    <li><div><h4>ગણતરી કરો</h4><p>દરેક ઊંડાઈએ ઓવાલિટી = |A − B|, દરેક દિશામાં ટેપર = |ઉપર − નીચે|, ઘસારો = Dmax − N.</p></div></li>
+    <li><div><h4>મર્યાદા સાથે સરખાવો અને નિર્ણય લો</h4><p>બધાં મૂલ્યો મર્યાદામાં હોય તો સ્વીકાર્ય; નહીં તો રીબોર/હોનિંગ કરી ઓવરસાઇઝ પિસ્ટન, અથવા લાઇનર બદલો.</p></div></li>
+    <li><div><h4>ઝીરો ફરી તપાસો</h4><p>માપ પૂરા થયા પછી ગેજને ફરી માસ્ટરમાં મૂકી ઝીરો ખસ્યો નથી તે ચકાસો. ખસ્યો હોય તો બધા માપ ફરી લો.</p></div></li>
+  </ol>
+
+  <div class="card prose" style="max-width:none">
+    <h3>ઉદાહરણ: ગણતરી સાથેનો રિપોર્ટ</h3>
+    <p>એન્જિન સિલિન્ડર, નોમિનલ Ø 76.00 mm. મર્યાદા: મહત્તમ વ્યાસ 76.10, ઓવાલિટી 0.04, ટેપર 0.05.</p>
+    <div class="tbl-wrap"><table>
+      <tr><th>ઊંડાઈ</th><th class="num">A-A ડાયલ</th><th class="num">A-A વ્યાસ</th><th class="num">B-B ડાયલ</th><th class="num">B-B વ્યાસ</th><th class="num">ઓવાલિટી</th></tr>
+      <tr><td>ઉપર</td><td class="num">−8 (ઊલટી)</td><td class="num">76.08</td><td class="num">−4</td><td class="num">76.04</td><td class="num">0.04</td></tr>
+      <tr><td>મધ્ય</td><td class="num">−5</td><td class="num">76.05</td><td class="num">−3</td><td class="num">76.03</td><td class="num">0.02</td></tr>
+      <tr><td>નીચે</td><td class="num">−2</td><td class="num">76.02</td><td class="num">−1</td><td class="num">76.01</td><td class="num">0.01</td></tr>
+      <tr><th>ટેપર</th><td></td><td class="num">0.06</td><td></td><td class="num">0.03</td><td></td></tr>
+    </table></div>
+    <p>મહત્તમ ઓવાલિટી 0.04 (મર્યાદામાં), પરંતુ A-A દિશામાં ટેપર 0.06 &gt; 0.05. <b>નિર્ણય: અસ્વીકાર્ય — રીબોર/હોનિંગ જરૂરી.</b></p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card prose">
+      <h3>ગેજની પોતાની ચકાસણી (કેલિબ્રેશન)</h3>
+      <div class="tbl-wrap"><table>
+        <tr><th>ચકાસણી</th><th>પદ્ધતિ</th><th>સ્વીકાર્ય</th></tr>
+        <tr><td>રિપીટેબિલિટી</td><td>એક જ રીંગમાં 10 વાર કાઢી-મૂકી ટર્નિંગ પોઇન્ટ વાંચો</td><td class="mono">≤ 0.002–0.003 mm</td></tr>
+        <tr><td>સંકેત ભૂલ</td><td>બે જુદા માપની રીંગ (દા.ત. 50.000 અને 50.100) વચ્ચેનો ફરક ડાયલ પર સરખાવો</td><td class="mono">≤ ±0.005 mm</td></tr>
+        <tr><td>ડાયલ ઇન્ડિકેટર</td><td>ડાયલ કેલિબ્રેશન ટેસ્ટર / સ્લિપ ગેજથી આખી રેન્જમાં તપાસ</td><td>ઉત્પાદક મુજબ</td></tr>
+        <tr><td>હિસ્ટેરેસિસ</td><td>પ્લન્જર અંદર અને બહાર જતાં એ જ બિંદુના રીડિંગ સરખાવો</td><td class="mono">≤ 0.003 mm</td></tr>
+        <tr><td>દૃશ્ય તપાસ</td><td>પોઇન્ટર વાંકો, કાચ તૂટ્યો, પ્લન્જર અટકે, સંપર્ક ઘસાયો</td><td>ખામી ન હોવી</td></tr>
+      </table></div>
+      <p class="note">કેલિબ્રેશન ઓછામાં ઓછું વર્ષમાં એક વાર NABL માન્ય લેબમાં કરાવો અને સ્ટીકર પર તારીખ લખો.</p>
+    </div>
+    <div class="card prose">
+      <h3>સાવચેતીઓ અને જાળવણી</h3>
+      <ul>
+        <li>ગેજ હંમેશાં ઇન્સ્યુલેટેડ હેન્ડલથી પકડો; સ્ટેમ કે હેડને હાથ ન લગાડો.</li>
+        <li>ગેજને પડવા ન દો; પ્લન્જર પર ઝટકો ન આપો.</li>
+        <li>ફરતા જોબ પર ક્યારેય માપ ન લો.</li>
+        <li>રેન્જ બહાર બળજબરીથી દાખલ ન કરો.</li>
+        <li>ડાયલ પર તેલ ન લગાવો; પ્લન્જરને માત્ર સાફ રાખો.</li>
+        <li>ઉપયોગ પછી સાફ કરી, એન્ટી-રસ્ટ તેલ લગાવી, રોડ છૂટા કરી બોક્સમાં રાખો.</li>
+        <li>ગેજ ભેજ અને ચુંબકીય સાધનોથી દૂર રાખો.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card prose" style="max-width:none">
+    <h3>સામાન્ય ભૂલો જે તાલીમાર્થીઓ કરે છે</h3>
+    <div class="tbl-wrap"><table>
+      <tr><th>ભૂલ</th><th>પરિણામ</th></tr>
+      <tr><td>ગેજ હલાવ્યા વગર પહેલી નજરે વંચાયેલું રીડિંગ લખવું</td><td>બોર વાસ્તવ કરતાં મોટો દેખાય (કોસાઇન ભૂલ)</td></tr>
+      <tr><td>ઘડિયાળ / ઊલટી દિશા ઉલટાવી દેવી</td><td>નાનો બોર મોટો લખાય — સંપૂર્ણ ખોટો નિર્ણય</td></tr>
+      <tr><td>ફેરા ગણક ન જોવો</td><td>1 mmની ભૂલ</td></tr>
+      <tr><td>ઝીરો કર્યા પછી બેઝલ લોક ન કરવું</td><td>માપ દરમિયાન ઝીરો ખસી જાય</td></tr>
+      <tr><td>માત્ર એક જ દિશામાં માપ લેવું</td><td>ઓવાલિટી પકડાય નહીં</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- ===================== 6. MCQ ===================== -->
+<section class="panel" id="tab-mcq" hidden>
+  <div class="prose">
+    <span class="eyebrow">પ્રકરણ 6 · MCQ ટેસ્ટ</span>
+    <h2>બહુવિકલ્પ પ્રશ્નોત્તરી</h2>
+    <p class="lead">ITI થીયરી અને પ્રેક્ટિકલ પરીક્ષાના ધોરણ મુજબના પ્રશ્નો. અભ્યાસ મોડમાં દરેક જવાબ પછી સમજૂતી મળે છે; પરીક્ષા મોડમાં સમય મર્યાદા સાથે અંતે પરિણામ.</p>
+  </div>
+
+  <div class="card" id="mcqSetup">
+    <div class="inline">
+      <div class="field"><label for="mcqCount">પ્રશ્નોની સંખ્યા</label>
+        <select id="mcqCount"><option value="10">10</option><option value="20" selected>20</option><option value="all">બધા</option></select></div>
+      <div class="field"><label for="mcqMode">મોડ</label>
+        <select id="mcqMode"><option value="learn">અભ્યાસ (તરત સમજૂતી)</option><option value="exam">પરીક્ષા (સમય સાથે)</option></select></div>
+      <button class="btn primary" id="mcqStart">ટેસ્ટ શરૂ કરો</button>
+    </div>
+    <p class="lbl" id="mcqBest" style="margin-top:8px"></p>
+  </div>
+
+  <div class="card q-card" id="mcqBox" hidden>
+    <div class="qmeta"><span>પ્રશ્ન <b class="mono" id="mqNo">1</b> / <b class="mono" id="mqTot">20</b></span><span id="mqTimer" class="mono"></span></div>
+    <div class="progress"><i id="mqBar"></i></div>
+    <p id="mqText" style="font-size:1.12rem;font-weight:600"></p>
+    <div class="opts" id="mqOpts"></div>
+    <div id="mqExp"></div>
+    <div class="btn-row" style="justify-content:space-between">
+      <button class="btn" id="mqPrev">પાછળ</button>
+      <button class="btn primary" id="mqNext">આગળ</button>
+    </div>
+  </div>
+
+  <div class="card" id="mcqResult" hidden></div>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap">ITI તાલીમાર્થીઓ માટે શૈક્ષણિક સિમ્યુલેટર. રિપોર્ટમાંની મર્યાદાઓ ઉદાહરણ માટે છે; વાસ્તવિક કામમાં ઉત્પાદકનું વર્કશોપ મેન્યુઅલ અનુસરો.</div></footer>
+
+<script>
+(function(){
+"use strict";
+var NS="http://www.w3.org/2000/svg";
+function $(id){return document.getElementById(id);}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+function rint(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function r2(x){return Math.round(x*100)/100;}
+function f2(x){return (Math.round(x*100)/100).toFixed(2);}
+function mod(a,n){return ((a%n)+n)%n;}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+/* ---------------- ટેબ ---------------- */
+var tabs=[].slice.call(document.querySelectorAll(".tab"));
+function showTab(name){
+  tabs.forEach(function(t){var on=t.dataset.tab===name;t.setAttribute("aria-selected",on?"true":"false");$("tab-"+t.dataset.tab).hidden=!on;});
+  store("dbg-tab",name);
+}
+tabs.forEach(function(t){t.addEventListener("click",function(){showTab(t.dataset.tab);window.scrollTo({top:0});});});
+var startTab=(location.hash||"").replace("#","");
+if(!document.getElementById("tab-"+startTab)) startTab=store("dbg-tab")||"sim";
+if(!document.getElementById("tab-"+startTab)) startTab="sim";
+showTab(startTab);
+
+/* ---------------- ડાયલ બનાવનાર ---------------- */
+function buildDial(svg){
+  svg.setAttribute("viewBox","-120 -120 240 240");
+  var h='';
+  h+='<circle class="s-bezel" r="117"/>';
+  for(var k=0;k<72;k++){var a=k*5*Math.PI/180;h+='<line class="s-bezel-in" x1="'+(113*Math.sin(a)).toFixed(1)+'" y1="'+(-113*Math.cos(a)).toFixed(1)+'" x2="'+(117*Math.sin(a)).toFixed(1)+'" y2="'+(-117*Math.cos(a)).toFixed(1)+'" stroke-width="1.2"/>';}
+  h+='<circle class="s-face" r="106"/>';
+  h+='<g class="scale"></g>';
+  h+='<text class="s-ink s-mono" y="-34" text-anchor="middle" font-size="9">0.01 mm</text>';
+  h+='<g class="rev" transform="translate(0,46)"><circle class="s-face" r="22" stroke="var(--face-ink)" stroke-width=".7"/>';
+  for(var i=0;i<10;i++){var b=i*36*Math.PI/180;
+    h+='<line class="s-tick" x1="'+(19*Math.sin(b)).toFixed(1)+'" y1="'+(-19*Math.cos(b)).toFixed(1)+'" x2="'+(22*Math.sin(b)).toFixed(1)+'" y2="'+(-22*Math.cos(b)).toFixed(1)+'" stroke-width="1"/>';
+    h+='<text class="s-ink s-mono" x="'+(13.5*Math.sin(b)).toFixed(1)+'" y="'+(-13.5*Math.cos(b)+2.6).toFixed(1)+'" text-anchor="middle" font-size="7">'+i+'</text>';}
+  h+='<line class="s-ptr-l rp" x1="0" y1="3" x2="0" y2="-17" stroke-width="1.8" stroke-linecap="round"/><circle class="s-hub" r="2.4"/></g>';
+  h+='<g class="ptr"><polygon class="s-ptr" points="-2.4,20 2.4,20 1,-96 0,-100 -1,-96"/><circle class="s-ptr" cy="16" r="5"/></g>';
+  h+='<circle class="s-hub" r="6"/><circle class="s-face" r="2"/>';
+  svg.innerHTML=h;
+  var d={svg:svg,scale:svg.querySelector(".scale"),ptr:svg.querySelector(".ptr"),rp:svg.querySelector(".rp")};
+  d.drawScale=function(style){
+    var s='';
+    for(var j=0;j<100;j++){var a=j*3.6*Math.PI/180,len=j%10===0?14:(j%5===0?10:6.5),w=j%10===0?1.6:(j%5===0?1.1:.7);
+      s+='<line class="s-tick" x1="'+(106*Math.sin(a)).toFixed(2)+'" y1="'+(-106*Math.cos(a)).toFixed(2)+'" x2="'+((106-len)*Math.sin(a)).toFixed(2)+'" y2="'+(-(106-len)*Math.cos(a)).toFixed(2)+'" stroke-width="'+w+'"/>';}
+    for(var n=0;n<10;n++){var c=n*36,lab=style==="bal"?(n<=5?n*10:(10-n)*10):n*10;
+      s+='<text class="s-ink s-mono" transform="rotate('+c+') translate(0,-80) rotate('+(-c)+')" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="600">'+lab+'</text>';}
+    if(style==="bal"){s+='<text class="s-ink" transform="rotate(54) translate(0,-64)" text-anchor="middle" font-size="11" font-weight="700">+</text><text class="s-ink" transform="rotate(-54) translate(0,-64)" text-anchor="middle" font-size="12" font-weight="700">−</text>';}
+    d.scale.innerHTML=s;
+  };
+  d.set=function(ptrDeg,scaleDeg,revDeg){
+    d.ptr.setAttribute("transform","rotate("+ptrDeg.toFixed(3)+")");
+    d.scale.setAttribute("transform","rotate("+scaleDeg.toFixed(3)+")");
+    d.rp.setAttribute("transform","rotate("+revDeg.toFixed(3)+")");
+  };
+  return d;
+}
+
+/* ભાગોના ચિત્રમાં ડાયલના ટીક */
+(function(){var g=$("partsTicks"),s='';for(var j=0;j<50;j++){var a=j*7.2*Math.PI/180,l=j%5===0?7:3.5;
+  s+='<line class="s-tick" x1="'+(150+48*Math.sin(a)).toFixed(1)+'" y1="'+(78-48*Math.cos(a)).toFixed(1)+'" x2="'+(150+(48-l)*Math.sin(a)).toFixed(1)+'" y2="'+(78-(48-l)*Math.cos(a)).toFixed(1)+'" stroke-width="'+(j%5===0?1.2:.6)+'"/>';}
+  g.innerHTML=s;})();
+
+/* ================= સિમ્યુલેટર ================= */
+var JOBS=[
+  {name:"એન્જિન સિલિન્ડર બોર",N:76,max:76.10,ov:0.04,tp:0.05,wear:6},
+  {name:"હાઇડ્રોલિક સિલિન્ડર",N:50,max:50.06,ov:0.03,tp:0.03,wear:4},
+  {name:"બેરિંગ હાઉસિંગ",N:62,max:62.04,ov:0.02,tp:0.02,wear:3},
+  {name:"પંપ બોડી બોર",N:38,max:38.05,ov:0.03,tp:0.03,wear:4}
+];
+var RODS=[20,25,30,35,40,45,50,55,60,65,70,75];
+var WASH=[0,1,2,3,4];
+var LVL=["ઉપર","મધ્ય","નીચે"];
+var LVL_Y=[150,255,360];
+
+var st={jobIdx:0,assembled:false,free:0,loc:"ring",lvl:0,dir:"A",tilt:0,bezel:0,zeroed:false,locked:false,
+        mode:"practice",rock:false,style:"cont",data:null,rec:{},turn:null,checked:false};
+
+var dial=buildDial($("dial"));
+var pdial=buildDial($("pDial"));
+
+function fillSelect(sel,items,fmt){sel.innerHTML=items.map(function(v,i){return '<option value="'+i+'">'+fmt(v)+'</option>';}).join("");}
+fillSelect($("jobSel"),JOBS,function(j){return j.name+" — Ø "+j.N.toFixed(2)+" mm";});
+$("rodSel").innerHTML='<option value="">પસંદ કરો</option>'+RODS.map(function(r){return '<option value="'+r+'">'+r+' mm</option>';}).join("");
+$("washSel").innerHTML=WASH.map(function(w){return '<option value="'+w+'">'+(w===0?"વોશર નહીં":w+" mm")+'</option>';}).join("");
+
+function job(){return JOBS[st.jobIdx];}
+function newJobData(){
+  var j=job(),base=rint(0,2)*0.01,top=rint(1,j.wear)*0.01,ovT=rint(0,Math.max(1,j.wear-1))*0.01;
+  var tap=[top,r2(top*0.5),0],ov=[ovT,r2(ovT*0.6),r2(ovT*0.3)];
+  var D=[];for(var l=0;l<3;l++){D.push({A:r2(j.N+base+tap[l]+ov[l]),B:r2(j.N+base+tap[l])});}
+  st.data={D:D};st.rec={};st.checked=false;
+}
+function trueD(){return st.loc==="ring"?job().N:st.data.D[st.lvl][st.dir];}
+function cAt(alpha){return st.free-trueD()/Math.cos(alpha*Math.PI/180);}
+function signedDiv(c){var v=mod(c*100-st.bezel,100);if(v>50)v-=100;return v;}
+
+function setMsg(text,kind){var m=$("simMsg");m.className="msg"+(kind?" "+kind:"");m.innerHTML=text;}
+
+function resetTurn(){st.turn={maxC:-1,minT:0,maxT:0,passed:false};}
+resetTurn();
+
+/* ---- કાપ દ્રશ્ય ---- */
+function drawScene(){
+  var s='',j=job(),loc=st.loc;
+  s+='<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" style="fill:var(--work)"/><line x1="0" y1="0" x2="0" y2="8" class="s-hatch"/></pattern></defs>';
+  if(loc==="ring"){
+    s+='<rect x="10" y="352" width="380" height="14" class="s-steel-d"/>';
+    s+='<rect x="30" y="298" width="50" height="54" fill="url(#hatch)" style="stroke:var(--hatch)"/><rect x="320" y="298" width="50" height="54" fill="url(#hatch)" style="stroke:var(--hatch)"/>';
+    s+='<text class="s-txt" x="200" y="392" text-anchor="middle" font-size="13" font-weight="700">સેટિંગ રીંગ ગેજ Ø '+j.N.toFixed(3)+' mm</text>';
+  }else{
+    s+='<rect x="10" y="110" width="70" height="296" fill="url(#hatch)" style="stroke:var(--hatch)"/><rect x="320" y="110" width="70" height="296" fill="url(#hatch)" style="stroke:var(--hatch)"/>';
+    for(var l=0;l<3;l++){var y=LVL_Y[l],on=l===st.lvl;
+      s+='<line x1="80" y1="'+y+'" x2="320" y2="'+y+'" stroke-dasharray="4 5" class="'+(on?"s-acc":"s-line")+'" opacity="'+(on?.9:.35)+'"/>';
+      s+='<text x="392" y="'+(y+4)+'" text-anchor="end" font-size="11" class="'+(on?"s-txt":"s-mut")+'" font-weight="'+(on?700:400)+'" style="paint-order:stroke" stroke="var(--work)" stroke-width="3">'+LVL[l]+'</text>';}
+    s+='<text class="s-mut" x="200" y="415" text-anchor="middle" font-size="11">'+j.name+' · Ø '+j.N.toFixed(2)+' (નોમિનલ)</text>';
+    /* ઉપરથી દૃશ્ય */
+    s+='<g transform="translate(350,52)"><circle r="30" class="s-work"/><circle r="22" class="s-bg" stroke="var(--hatch)"/>';
+    s+='<line x1="-22" y1="0" x2="22" y2="0" stroke-width="'+(st.dir==="A"?3:1)+'" class="'+(st.dir==="A"?"s-acc":"s-line")+'"/>';
+    s+='<line x1="0" y1="-22" x2="0" y2="22" stroke-width="'+(st.dir==="B"?3:1)+'" class="'+(st.dir==="B"?"s-acc":"s-line")+'"/>';
+    s+='<text x="-38" y="4" font-size="10" class="s-txt" text-anchor="middle">A</text><text x="0" y="-34" font-size="10" class="s-txt" text-anchor="middle">B</text>';
+    s+='<text x="0" y="46" font-size="9" class="s-mut" text-anchor="middle">ઉપરથી દૃશ્ય</text></g>';
+  }
+  s+='<g id="gauge"></g>';
+  $("scene").innerHTML=s;
+  $("stageCap").textContent=loc==="ring"?"કાપ દ્રશ્ય · સેટિંગ રીંગ":"કાપ દ્રશ્ય · જોબ, "+LVL[st.lvl]+" · "+(st.dir==="A"?"A-A":"B-B");
+  drawGauge();
+}
+function drawGauge(){
+  var g=$("gauge");if(!g)return;
+  var y=st.loc==="ring"?325:LVL_Y[st.lvl],a=st.tilt,ca=Math.cos(a*Math.PI/180),h=120/ca,L=(y-30)/ca,s='';
+  s+='<g transform="translate(200,'+y+') rotate('+a.toFixed(2)+')">';
+  s+='<rect x="-5" y="'+(-L)+'" width="10" height="'+(L-10)+'" class="s-steel"/>';
+  s+='<rect x="-10" y="'+(-L+40)+'" width="20" height="90" rx="6" class="s-grip"/>';
+  s+='<circle cx="0" cy="'+(-L-6)+'" r="17" class="s-bezel"/><circle cx="0" cy="'+(-L-6)+'" r="13" class="s-face"/>';
+  var pd=(cAt(a)*360)*Math.PI/180;
+  s+='<line x1="0" y1="'+(-L-6)+'" x2="'+(11*Math.sin(pd)).toFixed(2)+'" y2="'+(-L-6-11*Math.cos(pd)).toFixed(2)+'" class="s-ptr-l" stroke-width="1.6"/>';
+  s+='<rect x="-58" y="-12" width="116" height="24" rx="4" class="s-steel"/>';
+  s+='<rect x="'+(-h+5)+'" y="-4" width="'+(h-63)+'" height="8" class="s-steel-d"/>';
+  s+='<rect x="-64" y="-9" width="6" height="18" class="s-steel"/>';
+  s+='<circle cx="'+(-h+4)+'" cy="0" r="4" class="s-steel-d"/>';
+  s+='<rect x="58" y="-3.5" width="'+(h-62)+'" height="7" class="s-steel-d"/>';
+  s+='<circle cx="'+(h-4)+'" cy="0" r="4" class="s-steel-d"/>';
+  s+='<path d="M64 -14 Q'+(h-3)+' -14 '+(h-0.5)+' -3 M64 14 Q'+(h-3)+' 14 '+(h-0.5)+' 3" class="s-guide"/>';
+  s+='<circle cx="'+(-h)+'" cy="0" r="2.6" class="s-contact"/><circle cx="'+h+'" cy="0" r="2.6" class="s-contact"/>';
+  s+='</g>';
+  g.innerHTML=s;
+}
+
+/* ---- ગ્રાફ ---- */
+function drawChart(){
+  var W=320,H=160,ml=40,mr=12,mt=14,mb=30,c0=cAt(0),s0=signedDiv(c0);
+  function p(al){return s0+(cAt(al)-c0)*100;}
+  var ymax=s0,ymin=p(8),pad=Math.max(2,(ymax-ymin)*0.12);ymax+=pad;ymin-=pad;
+  function X(al){return ml+(al+8)/16*(W-ml-mr);}
+  function Y(v){return mt+(ymax-v)/(ymax-ymin)*(H-mt-mb);}
+  var s='';
+  [-8,-4,0,4,8].forEach(function(t){s+='<line x1="'+X(t)+'" y1="'+mt+'" x2="'+X(t)+'" y2="'+(H-mb)+'" class="s-grid"/><text x="'+X(t)+'" y="'+(H-mb+14)+'" font-size="10" text-anchor="middle" class="s-mut s-mono">'+t+'°</text>';});
+  [ymin+pad,s0].forEach(function(v){s+='<line x1="'+ml+'" y1="'+Y(v)+'" x2="'+(W-mr)+'" y2="'+Y(v)+'" class="s-grid"/><text x="'+(ml-5)+'" y="'+(Y(v)+3)+'" font-size="10" text-anchor="end" class="s-mut s-mono">'+v.toFixed(1)+'</text>';});
+  var d='';for(var al=-8;al<=8.001;al+=0.25){d+=(d?'L':'M')+X(al).toFixed(1)+' '+Y(p(al)).toFixed(1);}
+  s+='<path d="'+d+'" class="s-acc" stroke-width="2"/>';
+  s+='<line x1="'+X(0)+'" y1="'+Y(s0)+'" x2="'+X(0)+'" y2="'+(H-mb)+'" stroke-dasharray="3 3" class="s-ptr-l"/>';
+  s+='<circle cx="'+X(st.tilt)+'" cy="'+Y(p(st.tilt))+'" r="5" class="s-ptr"/>';
+  s+='<text x="'+(X(0)+5)+'" y="'+(Y(s0)-4)+'" font-size="10" class="s-txt">ટર્નિંગ પોઇન્ટ</text>';
+  s+='<text x="'+((ml+W-mr)/2)+'" y="'+(H-3)+'" font-size="10" text-anchor="middle" class="s-mut">નમન કોણ α (ડિગ્રી)</text>';
+  s+='<text transform="translate(10,'+((mt+H-mb)/2)+') rotate(-90)" font-size="10" text-anchor="middle" class="s-mut">વિભાગ</text>';
+  $("chart").innerHTML=s;
+}
+
+/* ---- દર ફ્રેમ અપડેટ ---- */
+function update(){
+  if(!st.assembled){dial.set(0,st.bezel*3.6,0);
+    $("chart").innerHTML='<text x="160" y="84" text-anchor="middle" font-size="12" class="s-mut">ગેજ જોડ્યા પછી અહીં ગ્રાફ દેખાશે</text>';return;}
+  var c=cAt(st.tilt);
+  dial.set(c*360,st.bezel*3.6,c*36);
+  drawGauge();
+  var t=st.turn;
+  if(c>t.maxC){t.maxC=c;}
+  t.minT=Math.min(t.minT,st.tilt);t.maxT=Math.max(t.maxT,st.tilt);
+  if(Math.abs(st.tilt)<0.15||(t.minT<-0.5&&t.maxT>0.5))t.passed=true;
+  var sc=mod(c*100-st.bezel,100),sd=signedDiv(c);
+  $("roScale").textContent=(st.style==="bal"?(sc<=50?sc:100-sc):sc).toFixed(1);
+  $("roDir").textContent=Math.abs(sd)<0.05?"ઝીરો પર":(sd>0?"ઘડિયાળ દિશા "+sd.toFixed(1):"ઊલટી દિશા "+(-sd).toFixed(1));
+  $("roTilt").textContent=(st.tilt>0?"+":"")+st.tilt.toFixed(1)+"°";
+  if(t.passed){var ts=signedDiv(t.maxC);$("roTurn").textContent=Math.abs(ts)<0.05?"0 (ઝીરો)":(ts>0?"ઘડિયાળ ":"ઊલટી ")+Math.abs(ts).toFixed(1);}
+  else $("roTurn").textContent="હલાવો…";
+  drawChart();
+}
+
+function refreshUI(){
+  var practice=st.mode==="practice";
+  $("helper").hidden=!practice;$("chartCard").hidden=!practice;
+  $("overlay").hidden=st.assembled;
+  var steps=[].slice.call(document.querySelectorAll("#steps li"));
+  var cur=!st.assembled?1:(!(st.zeroed&&st.locked)?2:(Object.keys(st.rec).length<6?3:4));
+  steps.forEach(function(li){var n=+li.dataset.s;li.className=n===cur?"active":(n<cur?"done":"");});
+  $("btnRing").classList.toggle("on",st.loc==="ring");$("btnJob").classList.toggle("on",st.loc==="job");
+  [].forEach.call(document.querySelectorAll("[data-bz]"),function(b){b.disabled=!st.assembled||st.locked;});
+  $("btnZero").disabled=!st.assembled||st.locked;
+  $("lockChk").disabled=!st.assembled;$("lockChk").checked=st.locked;
+  $("btnJob").disabled=!st.assembled;
+  var inJob=st.loc==="job"&&st.assembled;
+  [].forEach.call(document.querySelectorAll("[data-lvl],[data-dir]"),function(b){b.disabled=!inJob;});
+  [].forEach.call(document.querySelectorAll("[data-lvl]"),function(b){b.classList.toggle("on",+b.dataset.lvl===st.lvl);});
+  [].forEach.call(document.querySelectorAll("[data-dir]"),function(b){b.classList.toggle("on",b.dataset.dir===st.dir);});
+  $("btnRecord").disabled=!inJob;$("measIn").disabled=!inJob;
+  $("tilt").disabled=!st.assembled;$("btnRock").disabled=!st.assembled;
+  renderReport();
+}
+
+/* ---- જોડાણ ---- */
+$("jobSel").addEventListener("change",function(){st.jobIdx=+this.value;fullReset();setMsg("નવો જોબ: <b>"+job().name+"</b>. Ø "+job().N.toFixed(2)+" mm માટે રોડ + વોશર પસંદ કરો.");});
+function fullReset(){
+  stopRock();st.assembled=false;st.zeroed=false;st.locked=false;st.loc="ring";st.tilt=0;$("tilt").value=0;st.bezel=0;st.lvl=0;st.dir="A";
+  newJobData();resetTurn();drawScene();refreshUI();update();$("repResult").innerHTML="";
+  [].forEach.call(document.querySelectorAll('input[name=verdict]'),function(r){r.checked=false;});
+}
+$("btnAssemble").addEventListener("click",function(){
+  var rod=$("rodSel").value,w=+$("washSel").value,N=job().N;
+  if(rod===""){setMsg("એક્સ્ટેન્શન રોડ પસંદ કરો.","warn");return;}
+  var sum=+rod+w;
+  if(sum<N){setMsg("રોડ + વોશર = <b class=mono>"+sum+" mm</b> — નોમિનલ "+N+" mm કરતાં ટૂંકું છે. ગેજ બોરની દીવાલને અડશે નહીં. મોટો રોડ કે વોશર લો.","bad");return;}
+  if(sum>N){setMsg("રોડ + વોશર = <b class=mono>"+sum+" mm</b> — નોમિનલ "+N+" mm કરતાં લાંબું છે. પ્લન્જર રેન્જ બહાર જશે અને ગેજ બોરમાં બેસશે નહીં.","bad");return;}
+  st.free=N+1+rint(5,35)/100;st.assembled=true;st.zeroed=false;st.locked=false;st.loc="ring";
+  st.bezel=0;resetTurn();drawScene();refreshUI();update();
+  setMsg("સાચું! <b class=mono>"+rod+" + "+w+" = "+N+" mm</b>. હવે ગેજ સેટિંગ રીંગમાં છે. ગેજ હલાવો, ટર્નિંગ પોઇન્ટ પર <b>પોઇન્ટર પર ઝીરો</b> દબાવો અને બેઝલ લોક કરો.","ok");
+});
+
+/* ---- બેઝલ ---- */
+[].forEach.call(document.querySelectorAll("[data-bz]"),function(b){b.addEventListener("click",function(){st.bezel=mod(st.bezel+(+b.dataset.bz),100);st.zeroed=true;update();refreshUI();});});
+$("btnZero").addEventListener("click",function(){
+  var c=cAt(st.tilt);st.bezel=mod(c*100,100);st.zeroed=true;
+  if(st.loc==="ring"){
+    var err=(cAt(0)-c);
+    if(st.mode==="practice"){
+      if(err>0.004)setMsg("ઝીરો થયું, પણ ગેજ <b>"+st.tilt.toFixed(1)+"°</b> ત્રાંસુ હતું. ભૂલ ≈ <b class=mono>"+f2(err)+" mm</b>. બધા માપ આટલા ખોટા આવશે. α ≈ 0° (ટર્નિંગ પોઇન્ટ) પર ફરી ઝીરો કરો.","warn");
+      else setMsg("બરાબર! ટર્નિંગ પોઇન્ટ પર ઝીરો થયું. હવે <b>બેઝલ લોક સ્ક્રુ કસો</b>, પછી <b>જોબમાં મૂકો</b>.","ok");
+    }else setMsg("ઝીરો સેટ થયું. બેઝલ લોક કરો.");
+  }else setMsg("નોંધ: ઝીરો હંમેશાં સેટિંગ માસ્ટરમાં કરવો જોઈએ, જોબમાં નહીં.","warn");
+  update();refreshUI();
+});
+$("lockChk").addEventListener("change",function(){st.locked=this.checked;
+  if(st.locked&&!st.zeroed)setMsg("બેઝલ લોક થયું, પણ હજુ ઝીરો સેટ નથી કર્યું. લોક ખોલી પહેલાં ઝીરો કરો.","warn");
+  else if(st.locked)setMsg("બેઝલ લોક થયું. હવે <b>જોબમાં મૂકો</b> અને છ જગ્યાએ માપ લો.","ok");
+  refreshUI();});
+
+/* ---- સ્થાન ---- */
+$("btnRing").addEventListener("click",function(){st.loc="ring";resetTurn();drawScene();refreshUI();update();
+  setMsg("ગેજ સેટિંગ રીંગમાં. ઝીરો તપાસવા ગેજ હલાવો — ટર્નિંગ પોઇન્ટ પર પોઇન્ટર 0 પર હોવો જોઈએ.");});
+$("btnJob").addEventListener("click",function(){
+  if(!st.zeroed){setMsg("પહેલાં સેટિંગ રીંગમાં ઝીરો સેટ કરો.","warn");return;}
+  if(!st.locked){setMsg("બેઝલ લોક સ્ક્રુ કસ્યા વગર જોબમાં ન જાઓ — માપ દરમિયાન ઝીરો ખસી શકે.","warn");return;}
+  st.loc="job";resetTurn();drawScene();refreshUI();update();
+  setMsg("ગેજ જોબમાં <b>"+LVL[st.lvl]+"</b>, દિશા <b>"+st.dir+"-"+st.dir+"</b>. ગેજ હલાવો, ટર્નિંગ પોઇન્ટ પરથી વ્યાસ ગણો અને નોંધો.");
+});
+[].forEach.call(document.querySelectorAll("[data-lvl]"),function(b){b.addEventListener("click",function(){st.lvl=+b.dataset.lvl;resetTurn();drawScene();refreshUI();update();});});
+[].forEach.call(document.querySelectorAll("[data-dir]"),function(b){b.addEventListener("click",function(){st.dir=b.dataset.dir;resetTurn();drawScene();refreshUI();update();});});
+
+/* ---- નમન ---- */
+$("tilt").addEventListener("input",function(){stopRock();st.tilt=+this.value;update();});
+var rockT0=0,rockRaf=0;
+function rockLoop(ts){if(!st.rock)return;if(!rockT0)rockT0=ts;st.tilt=7*Math.sin((ts-rockT0)/650);$("tilt").value=st.tilt;update();rockRaf=requestAnimationFrame(rockLoop);}
+function stopRock(){st.rock=false;cancelAnimationFrame(rockRaf);$("btnRock").setAttribute("aria-pressed","false");$("btnRock").textContent="આપોઆપ હલાવો";$("btnRock").classList.remove("on");}
+$("btnRock").addEventListener("click",function(){
+  if(st.rock){stopRock();return;}
+  st.rock=true;rockT0=0;this.setAttribute("aria-pressed","true");this.textContent="રોકો";this.classList.add("on");rockRaf=requestAnimationFrame(rockLoop);
+});
+(function(){var sv=$("scene"),drag=false,x0=0,t0=0;
+  sv.addEventListener("pointerdown",function(e){if(!st.assembled)return;drag=true;x0=e.clientX;t0=st.tilt;stopRock();try{sv.setPointerCapture(e.pointerId);}catch(_){}});
+  sv.addEventListener("pointermove",function(e){if(!drag)return;var w=sv.getBoundingClientRect().width||400;st.tilt=clamp(t0+(e.clientX-x0)/w*24,-8,8);$("tilt").value=st.tilt;update();});
+  function end(){drag=false;}
+  sv.addEventListener("pointerup",end);sv.addEventListener("pointercancel",end);
+})();
+document.addEventListener("keydown",function(e){
+  if($("tab-sim").hidden||!st.assembled)return;
+  var tag=(e.target.tagName||"").toLowerCase();if(tag==="input"||tag==="select"||tag==="textarea")return;
+  if(e.key==="ArrowLeft"||e.key==="ArrowRight"){stopRock();st.tilt=clamp(st.tilt+(e.key==="ArrowLeft"?-0.2:0.2),-8,8);$("tilt").value=st.tilt;update();e.preventDefault();}
+});
+
+/* ---- નોંધ ---- */
+$("btnRecord").addEventListener("click",record);
+$("measIn").addEventListener("keydown",function(e){if(e.key==="Enter")record();});
+function record(){
+  var v=parseFloat($("measIn").value);
+  if(isNaN(v)){setMsg("વ્યાસ mmમાં લખો, દા.ત. "+f2(job().N+0.03)+".","warn");return;}
+  var key=st.lvl+st.dir,D=trueD(),ok=Math.abs(v-D)<0.0051;
+  st.rec[key]={v:v,ok:ok};st.checked=false;$("repResult").innerHTML="";
+  if(st.mode==="practice"){
+    if(ok)setMsg("સાચું! "+LVL[st.lvl]+" "+st.dir+"-"+st.dir+" = <b class=mono>"+f2(v)+" mm</b>. "+nextHint(),"ok");
+    else{
+      var tp=st.turn.passed?signedDiv(st.turn.maxC):null;
+      var why=Math.abs(v-D)>0.5?"ફેરા ગણક / દશાંશ તપાસો.":(v>D?"તમે ટર્નિંગ પોઇન્ટ પહેલાં વાંચ્યું અથવા દિશા ઉલટાવી.":"પોઇન્ટરની દિશા (ઘડિયાળ = નાનો બોર) તપાસો.");
+      setMsg("ખોટું. તમે <b class=mono>"+f2(v)+"</b> લખ્યું. "+why+(tp!==null?" ટર્નિંગ પોઇન્ટ પર પોઇન્ટર "+(tp>=0?"ઘડિયાળની દિશામાં ":"ઊલટી દિશામાં ")+Math.abs(Math.round(tp))+" વિભાગ છે.":" ગેજ બંને બાજુ હલાવો.")+" ફરી પ્રયત્ન કરો.","bad");
+    }
+  }else setMsg("નોંધાયું: "+LVL[st.lvl]+" "+st.dir+"-"+st.dir+" = <b class=mono>"+f2(v)+"</b>. "+nextHint());
+  $("measIn").value="";refreshUI();
+}
+function nextHint(){
+  for(var l=0;l<3;l++)for(var d of ["A","B"])if(!st.rec[l+d])return "હવે "+LVL[l]+" "+d+"-"+d+" માપો.";
+  return "છ માપ પૂરા! રિપોર્ટમાં નિર્ણય પસંદ કરી <b>રિપોર્ટ તપાસો</b>.";
+}
+
+/* ---- રિપોર્ટ ---- */
+function renderReport(){
+  var j=job(),h='<tr><th>ઊંડાઈ</th><th>A-A (mm)</th><th>B-B (mm)</th><th>ઓવાલિટી |A−B|</th></tr>';
+  var show=st.checked||st.mode==="practice";
+  for(var l=0;l<3;l++){
+    h+='<tr><th>'+LVL[l]+'</th>';
+    ["A","B"].forEach(function(d){var r=st.rec[l+d],cls="";
+      if(r&&show)cls=r.ok?"cell-ok":"cell-bad";
+      h+='<td class="mono '+cls+'">'+(r?f2(r.v):"—")+(r&&st.checked&&!r.ok?' <span style="font-size:.8em">(સાચું '+f2(st.data.D[l][d])+')</span>':'')+'</td>';});
+    var a=st.rec[l+"A"],b=st.rec[l+"B"];
+    h+='<td class="mono">'+(a&&b?f2(Math.abs(a.v-b.v)):"—")+'</td></tr>';
+  }
+  h+='<tr><th>ટેપર |ઉપર−નીચે|</th>';
+  ["A","B"].forEach(function(d){var t=st.rec["0"+d],bt=st.rec["2"+d];h+='<td class="mono">'+(t&&bt?f2(Math.abs(t.v-bt.v)):"—")+'</td>';});
+  h+='<td></td></tr>';
+  $("recTable").innerHTML=h;
+  $("repTitle").textContent=j.name+" · Ø "+j.N.toFixed(2);
+  $("specLine").innerHTML="મર્યાદા (ઉદાહરણ): વ્યાસ <span class=mono>"+f2(j.N)+" – "+f2(j.max)+"</span> mm · મહત્તમ ઓવાલિટી <span class=mono>"+f2(j.ov)+"</span> · મહત્તમ ટેપર <span class=mono>"+f2(j.tp)+"</span>";
+}
+function evalSet(get){
+  var j=job(),ovs=[],tps=[],ds=[];
+  for(var l=0;l<3;l++){ovs.push(Math.abs(get(l,"A")-get(l,"B")));ds.push(get(l,"A"),get(l,"B"));}
+  ["A","B"].forEach(function(d){tps.push(Math.abs(get(0,d)-get(2,d)));});
+  var mo=r2(Math.max.apply(null,ovs)),mt=r2(Math.max.apply(null,tps)),mx=r2(Math.max.apply(null,ds)),mn=r2(Math.min.apply(null,ds));
+  var ok=mo<=j.ov+1e-9&&mt<=j.tp+1e-9&&mx<=j.max+1e-9&&mn>=j.N-1e-9;
+  return {mo:mo,mt:mt,mx:mx,mn:mn,ok:ok};
+}
+$("btnCheck").addEventListener("click",function(){
+  if(Object.keys(st.rec).length<6){$("repResult").innerHTML='<div class="msg warn">પહેલાં છ જગ્યાએ (3 ઊંડાઈ × 2 દિશા) માપ નોંધો. બાકી: '+(6-Object.keys(st.rec).length)+'</div>';return;}
+  var vEl=document.querySelector('input[name=verdict]:checked');
+  if(!vEl){$("repResult").innerHTML='<div class="msg warn">તમારો નિર્ણય (સ્વીકાર્ય / અસ્વીકાર્ય) પસંદ કરો.</div>';return;}
+  st.checked=true;renderReport();
+  var tr=evalSet(function(l,d){return st.data.D[l][d];});
+  var correct=0;for(var k in st.rec)if(st.rec[k].ok)correct++;
+  var vOk=(vEl.value==="ok")===tr.ok;
+  var score=correct*10+(vOk?40:0);
+  var j=job(),reasons=[];
+  if(tr.mx>j.max)reasons.push("મહત્તમ વ્યાસ "+f2(tr.mx)+" > "+f2(j.max));
+  if(tr.mo>j.ov)reasons.push("ઓવાલિટી "+f2(tr.mo)+" > "+f2(j.ov));
+  if(tr.mt>j.tp)reasons.push("ટેપર "+f2(tr.mt)+" > "+f2(j.tp));
+  var h='<div class="msg '+(score>=80?"ok":score>=50?"warn":"bad")+'"><b>ગુણ: '+score+' / 100</b> — સાચા માપ '+correct+'/6 (દરેકના 10), નિર્ણય '+(vOk?"સાચો (+40)":"ખોટો (0)")+'.</div>';
+  h+='<div class="tbl-wrap" style="margin-top:8px"><table><tr><th>વિગત</th><th class="num">સાચું મૂલ્ય</th><th class="num">મર્યાદા</th><th>સ્થિતિ</th></tr>';
+  h+='<tr><td>મહત્તમ વ્યાસ</td><td class="num">'+f2(tr.mx)+'</td><td class="num">≤ '+f2(j.max)+'</td><td>'+badge(tr.mx<=j.max)+'</td></tr>';
+  h+='<tr><td>મહત્તમ ઓવાલિટી</td><td class="num">'+f2(tr.mo)+'</td><td class="num">≤ '+f2(j.ov)+'</td><td>'+badge(tr.mo<=j.ov)+'</td></tr>';
+  h+='<tr><td>મહત્તમ ટેપર</td><td class="num">'+f2(tr.mt)+'</td><td class="num">≤ '+f2(j.tp)+'</td><td>'+badge(tr.mt<=j.tp)+'</td></tr>';
+  h+='<tr><td>ઘસારો (Dmax − N)</td><td class="num">'+f2(tr.mx-j.N)+'</td><td class="num"></td><td></td></tr></table></div>';
+  h+='<p style="margin-top:8px"><b>સાચો નિર્ણય: '+(tr.ok?"સ્વીકાર્ય":"અસ્વીકાર્ય — "+reasons.join(", "))+'</b></p>';
+  $("repResult").innerHTML=h;refreshUI();
+});
+function badge(ok){return '<span class="badge '+(ok?"ok":"bad")+'">'+(ok?"મર્યાદામાં":"મર્યાદા બહાર")+'</span>';}
+$("btnNew").addEventListener("click",function(){
+  newJobData();st.loc=st.assembled?"ring":"ring";st.lvl=0;st.dir="A";resetTurn();drawScene();refreshUI();update();$("repResult").innerHTML="";
+  [].forEach.call(document.querySelectorAll('input[name=verdict]'),function(r){r.checked=false;});
+  setMsg(st.assembled?"નવો જોબ (એ જ માપ) તૈયાર. ગેજ રીંગમાં છે — ઝીરો તપાસો, પછી જોબમાં મૂકો.":"નવો જોબ તૈયાર. ગેજ જોડો.");
+});
+$("modeSel").addEventListener("change",function(){st.mode=this.value;st.checked=false;refreshUI();update();
+  setMsg(st.mode==="exam"?"પરીક્ષા મોડ: મદદ પેનલ અને ગ્રાફ છુપાયા છે. અંતે ગુણ મળશે.":"અભ્યાસ મોડ: મદદ પેનલ અને ગ્રાફ ચાલુ.");});
+$("dialStyle").addEventListener("change",function(){st.style=this.value;dial.drawScale(st.style);pdial.drawScale(st.style);update();});
+
+dial.drawScale("cont");pdial.drawScale("cont");
+newJobData();drawScene();refreshUI();update();
+
+/* ================= રીડિંગ પ્રેક્ટિસ ================= */
+var pr={n:1,score:0,streak:0,q:null,answered:false};
+function newPQ(){
+  var type=Math.random()<0.7?"bore":"plain",q={type:type};
+  if(type==="bore"){
+    var Ns=[25,38,50,62,76,85.5,100];q.N=Ns[rint(0,Ns.length-1)];
+    var s=rint(1,45)*(Math.random()<0.5?1:-1);q.s=s;q.ans=r2(q.N-s*0.01);
+    q.text="સેટિંગ માપ <b class=mono>Ø "+q.N.toFixed(2)+" mm</b> પર ગેજ ઝીરો કર્યો છે. બોરમાં ટર્નિંગ પોઇન્ટ પર ડાયલ આ રીડિંગ બતાવે છે. બોરનો વ્યાસ કેટલો?";
+    q.ptr=s*3.6;q.rev=0;
+  }else{
+    var rev=rint(0,3),div=rint(1,99);q.ans=r2(rev+div*0.01);
+    q.text="પ્લન્જર કુલ કેટલો ખસ્યો? (શરૂઆતમાં બંને પોઇન્ટર 0 પર હતા; નાનું ડાયલ પૂરા ફેરા = mm બતાવે છે)";
+    q.ptr=(rev*100+div)*3.6;q.rev=(rev+div/100)*36;
+  }
+  pr.q=q;pr.answered=false;
+  pdial.set(q.ptr,0,q.rev);
+  $("pQ").innerHTML=q.text;$("pIn").value="";$("pFb").innerHTML="";$("pNo").textContent=pr.n;
+}
+function checkPQ(){
+  var v=parseFloat($("pIn").value),q=pr.q;
+  if(isNaN(v)){$("pFb").innerHTML='<div class="msg warn">જવાબ mmમાં લખો.</div>';return;}
+  if(pr.answered)return;
+  pr.answered=true;
+  var ok=Math.abs(v-q.ans)<0.0051,ex;
+  if(q.type==="bore"){
+    var a=Math.abs(q.s);
+    ex=q.s>0?"પોઇન્ટર ઘડિયાળની દિશામાં "+a+" વિભાગ = "+f2(a*0.01)+" mm → બોર નાનો: "+f2(q.N)+" − "+f2(a*0.01)+" = <b class=mono>"+f2(q.ans)+"</b>"
+            :"પોઇન્ટર ઊલટી દિશામાં "+a+" વિભાગ"+(st.style==="cont"?" (સ્કેલ પર "+(100-a)+")":"")+" = "+f2(a*0.01)+" mm → બોર મોટો: "+f2(q.N)+" + "+f2(a*0.01)+" = <b class=mono>"+f2(q.ans)+"</b>";
+  }else ex="ફેરા ગણક "+Math.floor(q.ans)+" mm + મુખ્ય ડાયલ "+Math.round((q.ans%1)*100)+" × 0.01 = <b class=mono>"+f2(q.ans)+" mm</b>";
+  if(ok){pr.score++;pr.streak++;}else pr.streak=0;
+  $("pScore").textContent=pr.score;$("pStreak").textContent=pr.streak;
+  $("pFb").innerHTML='<div class="msg '+(ok?"ok":"bad")+'">'+(ok?"સાચું! ":"ખોટું. ")+ex+'</div>';
+}
+$("pCheck").addEventListener("click",checkPQ);
+$("pIn").addEventListener("keydown",function(e){if(e.key==="Enter"){if(pr.answered){pr.n++;newPQ();}else checkPQ();}});
+$("pNext").addEventListener("click",function(){pr.n++;newPQ();});
+newPQ();
+
+/* ================= MCQ ================= */
+var QB=[
+ ["ડાયલ બોર ગેજનો મુખ્ય ઉપયોગ શું છે?",["શાફ્ટનો બહારનો વ્યાસ માપવો","બોર (છિદ્ર)નો અંદરનો વ્યાસ તુલનાત્મક રીતે માપવો","સપાટીની ખરબચડાઈ માપવી","ધાતુની કઠિનતા માપવી"],1,"ડાયલ બોર ગેજ અંદરના વ્યાસ, ઓવાલિટી અને ટેપર માપવા માટે છે."],
+ ["ડાયલ બોર ગેજ કયા પ્રકારનું માપન સાધન છે?",["સીધું (Direct) માપન સાધન","તુલનાત્મક (Comparator) સાધન","કોણ માપન સાધન","લેઆઉટ સાધન"],1,"તે જાણીતા માસ્ટર માપ સાથે સરખામણી કરીને તફાવત બતાવે છે, એટલે તુલનાત્મક સાધન છે."],
+ ["સામાન્ય મેટ્રિક ડાયલ બોર ગેજનું લઘુત્તમ માપ (LC) કેટલું હોય છે?",["0.1 mm","0.02 mm","0.01 mm","0.05 mm"],2,"1 mm ÷ 100 વિભાગ = 0.01 mm."],
+ ["LC 0.01 mm અને 100 વિભાગવાળા ડાયલમાં પોઇન્ટરનો એક પૂરો ફેરો કેટલા mm બરાબર છે?",["0.1 mm","1 mm","10 mm","0.5 mm"],1,"100 × 0.01 = 1 mm."],
+ ["બોરમાં ગેજ હલાવતાં (રોકિંગ) સાચું રીડિંગ ક્યાં લેવાય?",["પોઇન્ટર જ્યાં સૌથી ઊલટી દિશામાં જાય ત્યાં","પોઇન્ટર જ્યાં દિશા બદલે તે ટર્નિંગ પોઇન્ટ પર","ગેજ દાખલ કરતાં પહેલી નજરે","ગેજ બહાર કાઢતી વખતે"],1,"ટર્નિંગ પોઇન્ટ પર ગેજ બોરની ધરીને લંબ હોય છે અને અંતર સૌથી ઓછું એટલે સાચો વ્યાસ હોય છે."],
+ ["ટર્નિંગ પોઇન્ટ પર માપાતું અંતર કેવું હોય છે?",["સૌથી વધુ","સૌથી ઓછું","સરેરાશ","શૂન્ય"],1,"ત્રાંસી રેખા L = D/cos α હંમેશાં D કરતાં લાંબી; લંબ સ્થિતિમાં અંતર સૌથી ઓછું = સાચો વ્યાસ."],
+ ["ગેજ બોરમાં ત્રાંસુ રહી જાય તો કઈ ભૂલ આવે?",["પેરેલેક્ષ ભૂલ","કોસાઇન ભૂલ","ઝીરો ભૂલ","હિસ્ટેરેસિસ ભૂલ"],1,"ત્રાંસા ગેજથી L = D / cos α માપાય છે, તેને કોસાઇન ભૂલ કહે છે."],
+ ["ડાયલ બોર ગેજને ઝીરો સેટ કરવા કયું સાધન વપરાય?",["સ્ટીલ રૂલ","સેટિંગ રીંગ ગેજ અથવા આઉટસાઇડ માઇક્રોમીટર","ફીલર ગેજ","સ્ક્રુ પિચ ગેજ"],1,"ચોક્કસ માપનો માસ્ટર — સેટિંગ રીંગ ગેજ, આઉટસાઇડ માઇક્રોમીટર અથવા સ્લિપ ગેજ સેટ — ઝીરો માટે વપરાય."],
+ ["બોર ગેજની માપ રેન્જ બદલવા કયો ભાગ બદલાય?",["ડાયલ","એક્સ્ટેન્શન રોડ અને વોશર","હેન્ડલ","પ્લન્જર સ્પ્રિંગ"],1,"એક્સ્ટેન્શન રોડ (સ્થિર એન્વિલ) અને વોશર બદલીને નોમિનલ માપ ગોઠવાય."],
+ ["સેન્ટ્રલાઇઝિંગ ગાઇડ (બ્રિજ)નું કાર્ય શું છે?",["પ્લન્જરને લોક કરવું","ગેજને બોરની વ્યાસ રેખા પર કેન્દ્રિત રાખવું","ડાયલને ફેરવવું","ગરમી રોકવી"],1,"ગાઇડ ગેજને કેન્દ્રમાં રાખે છે જેથી કોર્ડ નહીં, પરંતુ વ્યાસ માપાય."],
+ ["પ્લન્જરની આડી ગતિ ડાયલ સુધી કઈ રીતે પહોંચે છે?",["ગિયર ટ્રેન દ્વારા સીધી","વેજ / બેલ-ક્રેન્ક લીવર અને પુશ રોડ દ્વારા 90° ફેરવીને","હાઇડ્રોલિક દબાણથી","ચુંબકીય રીતે"],1,"હેડમાંનો વેજ અથવા લીવર ગતિને 90° ફેરવી પુશ રોડ દ્વારા ડાયલના સ્પિન્ડલ સુધી પહોંચાડે છે."],
+ ["સેટિંગ 50.00 mm પર ઝીરો. બોરમાં ટર્નિંગ પોઇન્ટ પર પોઇન્ટર ઘડિયાળની દિશામાં 8 વિભાગ છે. બોરનો વ્યાસ?",["50.08 mm","49.92 mm","50.80 mm","49.20 mm"],1,"ઘડિયાળની દિશા = બોર નાનો: 50.00 − 0.08 = 49.92 mm."],
+ ["સેટિંગ 76.00 mm પર ઝીરો. ટર્નિંગ પોઇન્ટ પર પોઇન્ટર ઘડિયાળથી ઊલટી દિશામાં 15 વિભાગ છે. બોરનો વ્યાસ?",["75.85 mm","76.15 mm","76.015 mm","77.50 mm"],1,"ઊલટી દિશા = બોર મોટો: 76.00 + 0.15 = 76.15 mm."],
+ ["ઓવાલિટી એટલે શું?",["ઉપર અને નીચેના માપનો તફાવત","એક જ ઊંડાઈએ બે લંબ દિશા (A-A, B-B)ના માપનો તફાવત","નોમિનલ અને મહત્તમ માપનો તફાવત","બે બોર વચ્ચેનું અંતર"],1,"ઓવાલિટી = |A − B| એક જ ઊંડાઈએ."],
+ ["ટેપર એટલે શું?",["એક જ દિશામાં બોરના ઉપર અને નીચેના માપનો તફાવત","બે દિશાના માપનો તફાવત","બોરની ઊંડાઈ","બોરનો ઘસારો"],0,"ટેપર = |ઉપર − નીચે| એક જ દિશામાં."],
+ ["A-A = 76.08 mm અને B-B = 76.03 mm (એક જ ઊંડાઈએ). ઓવાલિટી કેટલી?",["0.03 mm","0.05 mm","0.08 mm","0.11 mm"],1,"76.08 − 76.03 = 0.05 mm."],
+ ["ઉપર 50.06 mm અને નીચે 50.02 mm (એક જ દિશા). ટેપર કેટલું?",["0.02 mm","0.04 mm","0.06 mm","0.08 mm"],1,"50.06 − 50.02 = 0.04 mm."],
+ ["એન્જિન સિલિન્ડરમાં સૌથી વધુ ઘસારો સામાન્ય રીતે ક્યાં થાય?",["નીચે સ્કર્ટ પાસે","ઉપરના ભાગમાં, ટોપ રિંગની રિવર્સલ જગ્યા પાસે","બરાબર મધ્યમાં","બધે સરખો"],1,"ઉપરના ભાગમાં ઊંચું તાપમાન, દબાણ અને ઓછું લુબ્રિકેશન હોવાથી ત્યાં ઘસારો વધુ."],
+ ["બોર ગેજના હેન્ડલ પર ઇન્સ્યુલેશન (ગ્રીપ) શા માટે હોય છે?",["સારી પકડ માટે માત્ર","હાથની ગરમીથી સ્ટેમના વિસ્તરણને રોકવા","વજન ઘટાડવા","શોભા માટે"],1,"હાથની ગરમીથી ધાતુ વિસ્તરે અને માપમાં ભૂલ આવે, તે રોકવા."],
+ ["ચોકસાઈ માપન માટે પ્રમાણભૂત તાપમાન કેટલું છે?",["0°C","20°C","27°C","37°C"],1,"આંતરરાષ્ટ્રીય ધોરણ (ISO 1) મુજબ 20°C."],
+ ["ડાયલ ત્રાંસી નજરે વાંચવાથી કઈ ભૂલ આવે?",["કોસાઇન ભૂલ","પેરેલેક્ષ ભૂલ","તાપમાન ભૂલ","ઝીરો ભૂલ"],1,"આંખ ડાયલની બરાબર સામે ન હોય તો પેરેલેક્ષ ભૂલ."],
+ ["ડાયલ ઇન્ડિકેટરના બેઝલનું કાર્ય શું છે?",["પ્લન્જર દબાવવું","સ્કેલ ફેરવીને ઝીરોને પોઇન્ટર સામે ગોઠવવું","ફેરા ગણવા","ગેજ લોક કરવું"],1,"બેઝલ ફેરવવાથી આખો સ્કેલ ફરે છે અને કોઈ પણ સ્થિતિમાં ઝીરો સેટ થાય."],
+ ["ફેરા ગણક (Revolution counter) શું બતાવે છે?",["0.01 mm","મુખ્ય પોઇન્ટરના પૂરા ફેરા (mm)","તાપમાન","નમન કોણ"],1,"નાનું ડાયલ મુખ્ય પોઇન્ટરના પૂરા ફેરા ગણે; 1 ફેરો = 1 mm."],
+ ["3-પોઇન્ટ બોર ગેજનો મુખ્ય ફાયદો શું છે?",["સસ્તું હોય છે","સ્વયં કેન્દ્રિત થાય છે, રોકિંગની ઓછી જરૂર","બહારનો વ્યાસ પણ માપે","LC 0.1 mm"],1,"ત્રણ સંપર્ક બિંદુથી ગેજ જાતે બોરના કેન્દ્રમાં ગોઠવાય છે."],
+ ["પ્લન્જરને પ્રીલોડ (થોડો દબાયેલો) શા માટે રાખવામાં આવે છે?",["ઘસારો ઘટાડવા","બોર મોટો કે નાનો બંને વાંચી શકાય અને સંપર્ક દબાણ સતત રહે","ડાયલ ઝડપી ફરે","ગેજ હળવું થાય"],1,"પ્રીલોડથી પ્લન્જર બંને દિશામાં ખસી શકે, એટલે + અને − બંને તફાવત વંચાય."],
+ ["ઉપયોગ પછી બોર ગેજ કઈ રીતે સાચવવું?",["તેલમાં ડુબાડીને","સાફ કરી, એન્ટી-રસ્ટ તેલ લગાવી, રોડ છૂટા કરી બોક્સમાં","ટૂલ ટ્રોલીમાં બીજા સાધનો સાથે","વાઇસમાં પકડીને"],1,"સાફ, કાટરોધક તેલ અને પોતાના બોક્સમાં સુરક્ષિત રાખવું."],
+ ["નોમિનલ 62.00 mm માટે 60 mm એક્સ્ટેન્શન રોડ સાથે કેટલા mmનું વોશર લગાવવું?",["1 mm","2 mm","3 mm","4 mm"],1,"રોડ + વોશર = નોમિનલ: 60 + 2 = 62 mm."],
+ ["સિલિન્ડર બોરમાં સંપૂર્ણ તપાસ માટે ઓછામાં ઓછા કેટલા માપ લેવા જોઈએ?",["1","2","6 (3 ઊંડાઈ × 2 દિશા)","10"],2,"ઉપર, મધ્ય, નીચે — દરેકે A-A અને B-B — કુલ 6 માપથી ઓવાલિટી અને ટેપર બંને મળે."],
+ ["બોર ગેજની રિપીટેબિલિટી કઈ રીતે ચકાસાય?",["એક જ રીંગમાં વારંવાર (5–10 વાર) માપ લઈ રીડિંગનો ફેલાવો જોઈને","નવો ડાયલ લગાવીને","ગેજનું વજન કરીને","જોબ ગરમ કરીને"],0,"એક જ માસ્ટરમાં વારંવાર માપ લેતાં રીડિંગ લગભગ સમાન આવવા જોઈએ."],
+ ["બોરમાં ગેજ દાખલ કરવાની સાચી રીત કઈ?",["સીધો જોરથી ધકેલવો","ગાઇડ/પ્લન્જર બાજુ નમાવીને પહેલા દાખલ કરવી, પછી સ્થિર એન્વિલ બાજુ","એન્વિલ બાજુ પહેલા ઠોકીને","ગેજ ફેરવતાં ફેરવતાં"],1,"પ્લન્જર બાજુ પહેલા દબાવીને દાખલ કરવાથી સંપર્ક બિંદુઓ ઘસાતા નથી."],
+ ["ઝીરો સેટ કર્યા પછી તરત શું કરવું જોઈએ?",["ડાયલ કાઢી નાખવું","બેઝલ લોક સ્ક્રુ કસવો","રોડ બદલવો","પ્લન્જરને તેલ લગાવવું"],1,"લોક ન કરો તો માપ દરમિયાન બેઝલ ફરી શકે અને ઝીરો ખસી જાય."],
+ ["Ø 76 mm બોરમાં ગેજ 3° ત્રાંસુ હોય તો આશરે કેટલી ભૂલ આવે?",["0.001 mm","0.01 mm","0.10 mm","1.0 mm"],2,"76 × (1/cos 3° − 1) ≈ 76 × 0.00137 ≈ 0.10 mm."],
+ ["સતત 0–100 ડાયલ પર ઝીરો પછી પોઇન્ટર 93 બતાવે (ઓછું ખસ્યો) તો તેનો અર્થ?",["ઘડિયાળની દિશામાં 93 વિભાગ","ઊલટી દિશામાં 7 વિભાગ, એટલે બોર 0.07 mm મોટો","બોર 0.93 mm નાનો","ગેજ ખરાબ છે"],1,"50 પછીનો આંક ઊલટી દિશા બતાવે: 100 − 93 = 7 વિભાગ = 0.07 mm મોટો."],
+ ["માપ પૂરા થયા પછી ગેજને ફરી સેટિંગ રીંગમાં મૂકી શું ચકાસવું જોઈએ?",["ગેજનું વજન","ઝીરો ખસ્યો નથી","ડાયલનો રંગ","રોડની લંબાઈ"],1,"ઝીરો ખસ્યો હોય તો બધા માપ શંકાસ્પદ; ફરી લેવા પડે."],
+ ["ગરમ એન્જિન બ્લોક તરત માપવાથી શું થાય?",["બોર વાસ્તવ કરતાં મોટો મપાય","બોર નાનો મપાય","કોઈ ફરક નહીં","ડાયલ બંધ થાય"],0,"ગરમીથી ધાતુ વિસ્તરે, એટલે બોર મોટો મપાય. 20°C પર ઠંડુ થવા દો."]
+];
+var mq={list:[],ans:[],i:0,mode:"learn",timer:0,left:0};
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function showBest(){var b=store("dbg-best");$("mcqBest").textContent=b?"તમારો શ્રેષ્ઠ સ્કોર (પરીક્ષા મોડ): "+b:"કુલ "+QB.length+" પ્રશ્નો ઉપલબ્ધ.";}
+showBest();
+$("mcqStart").addEventListener("click",function(){startMCQ(null);});
+function startMCQ(subset){
+  var n=$("mcqCount").value;mq.mode=$("mcqMode").value;
+  var idx=subset||shuffle(QB.map(function(_,i){return i;}));
+  if(!subset&&n!=="all")idx=idx.slice(0,+n);
+  mq.list=idx.map(function(k){var q=QB[k],order=shuffle([0,1,2,3]);return {q:q[0],o:order.map(function(o){return q[1][o];}),a:order.indexOf(q[2]),e:q[3],src:k};});
+  mq.ans=mq.list.map(function(){return -1;});mq.i=0;
+  $("mcqSetup").hidden=true;$("mcqResult").hidden=true;$("mcqBox").hidden=false;
+  clearInterval(mq.timer);$("mqTimer").textContent="";
+  if(mq.mode==="exam"){mq.left=mq.list.length*45;tick();mq.timer=setInterval(tick,1000);}
+  renderQ();
+}
+function tick(){
+  var m=Math.floor(mq.left/60),s=mq.left%60;$("mqTimer").textContent="સમય બાકી "+m+":"+(s<10?"0":"")+s;
+  if(mq.left<=0){clearInterval(mq.timer);finishMCQ();return;}mq.left--;
+}
+function renderQ(){
+  var it=mq.list[mq.i],a=mq.ans[mq.i],learn=mq.mode==="learn",locked=learn&&a>=0;
+  $("mqNo").textContent=mq.i+1;$("mqTot").textContent=mq.list.length;
+  $("mqBar").style.width=((mq.i+1)/mq.list.length*100)+"%";
+  $("mqText").textContent=it.q;
+  var keys=["ક","ખ","ગ","ઘ"];
+  $("mqOpts").innerHTML=it.o.map(function(o,k){
+    var cls="opt";if(a===k)cls+=" sel";
+    if(locked){if(k===it.a)cls+=" right";else if(k===a)cls+=" wrong";}
+    return '<button class="'+cls+'" data-k="'+k+'"'+(locked?" disabled":"")+'><span class="key">'+keys[k]+'</span><span>'+o+'</span></button>';}).join("");
+  [].forEach.call($("mqOpts").querySelectorAll(".opt"),function(b){b.addEventListener("click",function(){mq.ans[mq.i]=+b.dataset.k;renderQ();});});
+  $("mqExp").innerHTML=locked?'<div class="note '+(a===it.a?"ok":"bad")+'"><b>'+(a===it.a?"સાચું!":"ખોટું.")+'</b> '+it.e+'</div>':"";
+  $("mqPrev").disabled=mq.i===0;
+  $("mqNext").textContent=mq.i===mq.list.length-1?"પરિણામ જુઓ":"આગળ";
+}
+$("mqPrev").addEventListener("click",function(){if(mq.i>0){mq.i--;renderQ();}});
+$("mqNext").addEventListener("click",function(){if(mq.i<mq.list.length-1){mq.i++;renderQ();}else finishMCQ();});
+function finishMCQ(){
+  clearInterval(mq.timer);
+  var right=0,wrong=[];mq.list.forEach(function(it,k){if(mq.ans[k]===it.a)right++;else wrong.push(k);});
+  var pct=Math.round(right/mq.list.length*100),grade=pct>=90?"A+ ઉત્તમ":pct>=75?"A ખૂબ સારું":pct>=60?"B સારું":pct>=40?"C પાસ":"નાપાસ — થીયરી ફરી વાંચો";
+  if(mq.mode==="exam"){var b=parseInt(store("dbg-best")||"0",10);if(pct>b)store("dbg-best",pct+"%");}
+  var keys=["ક","ખ","ગ","ઘ"];
+  var h='<div class="inline" style="justify-content:space-between;align-items:center"><div><div class="big-score">'+right+' / '+mq.list.length+'</div><div class="lbl">'+pct+'% · ગ્રેડ: '+grade+'</div></div>';
+  h+='<div class="btn-row"><button class="btn primary" id="mqAgain">નવો ટેસ્ટ</button>'+(wrong.length?'<button class="btn" id="mqWrong">ખોટા પ્રશ્નો ફરી કરો ('+wrong.length+')</button>':'')+'</div></div>';
+  h+='<div style="display:grid;gap:12px;margin-top:16px">';
+  mq.list.forEach(function(it,k){var a=mq.ans[k],ok=a===it.a;
+    h+='<div class="review-item"><div><span class="badge '+(ok?"ok":"bad")+'">'+(ok?"સાચું":"ખોટું")+'</span> <b>'+(k+1)+'. '+it.q+'</b></div>';
+    h+='<div>તમારો જવાબ: '+(a>=0?keys[a]+") "+it.o[a]:"આપ્યો નથી")+'</div>';
+    if(!ok)h+='<div>સાચો જવાબ: <b>'+keys[it.a]+') '+it.o[it.a]+'</b></div>';
+    h+='<div class="lbl">'+it.e+'</div></div>';});
+  h+='</div>';
+  $("mcqBox").hidden=true;var r=$("mcqResult");r.innerHTML=h;r.hidden=false;
+  $("mqAgain").addEventListener("click",function(){r.hidden=true;$("mcqSetup").hidden=false;showBest();});
+  if(wrong.length)$("mqWrong").addEventListener("click",function(){startMCQ(wrong.map(function(k){return mq.list[k].src;}));});
+  r.scrollIntoView({behavior:"smooth",block:"start"});
+}
+})();
+</script>
+</body>
+</html>
