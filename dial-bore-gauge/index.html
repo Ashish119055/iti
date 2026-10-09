@@ -194,8 +194,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .big-score{font-family:var(--font-display);font-size:3rem;font-weight:800;line-height:1}
 .review-item{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:4px}
 .parts-legend{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:p}
-.parts-legend li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
-.parts-legend li::before{counter-increment:p;content:counter(p);display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--surface);font-family:var(--font-mono);font-size:.8rem;margin-top:2px}
+.parts-legend li{display:grid;grid-template-columns:14px 1fr;gap:10px;align-items:start}
+.parts-legend li::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:.6em}
 .proc{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s}
 .proc li{display:grid;grid-template-columns:34px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .proc li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-mono);font-weight:600}
@@ -410,11 +410,11 @@ footer .wrap{padding-block:18px}
   <div class="prose">
     <span class="eyebrow">પ્રકરણ 2 · ભાગો અને રચના</span>
     <h2>ડાયલ બોર ગેજના ભાગો</h2>
-    <p class="lead">ચિત્રમાં દરેક નંબર નીચેની યાદીના ભાગ સાથે મેળ ખાય છે.</p>
+    <p class="lead">ચિત્રમાં દરેક ભાગનું નામ લખેલું છે; બાજુની યાદીમાં તેનું કાર્ય છે.</p>
   </div>
   <div class="grid-2" style="align-items:start">
     <div class="card">
-      <svg viewBox="0 0 420 520" role="img" aria-label="ડાયલ બોર ગેજનું નામ સાથેનું ચિત્ર">
+      <svg viewBox="0 0 470 524" role="img" aria-label="ડાયલ બોર ગેજનું નામ સાથેનું ચિત્ર">
         <!-- ડાયલ -->
         <circle class="s-bezel" cx="150" cy="78" r="58"/>
         <circle class="s-face" cx="150" cy="78" r="48"/>
@@ -442,17 +442,17 @@ footer .wrap{padding-block:18px}
         <path d="M150 468 L168 448 L176 456" fill="none" stroke="var(--pointer)" stroke-width="2"/>
         <!-- લેબલ -->
         <g font-size="12" class="s-txt" font-weight="700">
-          <g><line class="s-line" x1="195" y1="40" x2="300" y2="30"/><circle class="s-acc-f" cx="312" cy="30" r="10"/><text x="312" y="34" text-anchor="middle" fill="var(--surface)">1</text></g>
-          <g><line class="s-line" x1="205" y1="100" x2="300" y2="80"/><circle class="s-acc-f" cx="312" cy="80" r="10"/><text x="312" y="84" text-anchor="middle" fill="var(--surface)">2</text></g>
-          <g><line class="s-line" x1="225" y1="78" x2="300" y2="130"/><circle class="s-acc-f" cx="312" cy="130" r="10"/><text x="312" y="134" text-anchor="middle" fill="var(--surface)">3</text></g>
-          <g><line class="s-line" x1="161" y1="100" x2="300" y2="180"/><circle class="s-acc-f" cx="312" cy="180" r="10"/><text x="312" y="184" text-anchor="middle" fill="var(--surface)">4</text></g>
-          <g><line class="s-line" x1="168" y1="250" x2="300" y2="230"/><circle class="s-acc-f" cx="312" cy="230" r="10"/><text x="312" y="234" text-anchor="middle" fill="var(--surface)">5</text></g>
-          <g><line class="s-line" x1="152" y1="380" x2="300" y2="280"/><circle class="s-acc-f" cx="312" cy="280" r="10"/><text x="312" y="284" text-anchor="middle" fill="var(--surface)">6</text></g>
-          <g><line class="s-line" x1="160" y1="472" x2="300" y2="330"/><circle class="s-acc-f" cx="312" cy="330" r="10"/><text x="312" y="334" text-anchor="middle" fill="var(--surface)">7</text></g>
-          <g><line class="s-line" x1="236" y1="463" x2="300" y2="380"/><circle class="s-acc-f" cx="312" cy="380" r="10"/><text x="312" y="384" text-anchor="middle" fill="var(--surface)">8</text></g>
-          <g><line class="s-line" x1="244" y1="470" x2="300" y2="430"/><circle class="s-acc-f" cx="312" cy="430" r="10"/><text x="312" y="434" text-anchor="middle" fill="var(--surface)">9</text></g>
-          <g><line class="s-line" x1="60" y1="464" x2="60" y2="500"/><line class="s-line" x1="60" y1="500" x2="300" y2="480"/><circle class="s-acc-f" cx="312" cy="480" r="10"/><text x="312" y="484" text-anchor="middle" fill="var(--surface)">10</text></g>
-          <g><line class="s-line" x1="101" y1="470" x2="101" y2="510"/><line class="s-line" x1="101" y1="510" x2="360" y2="510"/><circle class="s-acc-f" cx="372" cy="505" r="10"/><text x="372" y="509" text-anchor="middle" fill="var(--surface)">11</text></g>
+          <g><line class="s-line" x1="195" y1="40" x2="296" y2="30"/><circle class="s-acc-f" cx="298" cy="30" r="3.5"/><text x="306" y="35" font-size="13.5">ડાયલ ઇન્ડિકેટર</text></g>
+          <g><line class="s-line" x1="205" y1="100" x2="296" y2="80"/><circle class="s-acc-f" cx="298" cy="80" r="3.5"/><text x="306" y="85" font-size="13.5">બેઝલ (ફરતી રીંગ)</text></g>
+          <g><line class="s-line" x1="225" y1="78" x2="296" y2="130"/><circle class="s-acc-f" cx="298" cy="130" r="3.5"/><text x="306" y="135" font-size="13.5">બેઝલ લોક સ્ક્રુ</text></g>
+          <g><line class="s-line" x1="161" y1="100" x2="296" y2="180"/><circle class="s-acc-f" cx="298" cy="180" r="3.5"/><text x="306" y="185" font-size="13.5">ફેરા ગણક</text></g>
+          <g><line class="s-line" x1="168" y1="250" x2="296" y2="230"/><circle class="s-acc-f" cx="298" cy="230" r="3.5"/><text x="306" y="235" font-size="13.5">ઇન્સ્યુલેટેડ હેન્ડલ</text></g>
+          <g><line class="s-line" x1="152" y1="380" x2="296" y2="280"/><circle class="s-acc-f" cx="298" cy="280" r="3.5"/><text x="306" y="285" font-size="13.5">સ્ટેમ અને પુશ રોડ</text></g>
+          <g><line class="s-line" x1="160" y1="472" x2="296" y2="330"/><circle class="s-acc-f" cx="298" cy="330" r="3.5"/><text x="306" y="335" font-size="13.5">વેજ / લીવર</text></g>
+          <g><line class="s-line" x1="236" y1="463" x2="296" y2="380"/><circle class="s-acc-f" cx="298" cy="380" r="3.5"/><text x="306" y="385" font-size="13.5">ગતિશીલ પ્લન્જર</text></g>
+          <g><line class="s-line" x1="244" y1="470" x2="296" y2="430"/><circle class="s-acc-f" cx="298" cy="430" r="3.5"/><text x="306" y="435" font-size="13.5">સેન્ટ્રલાઇઝિંગ ગાઇડ</text></g>
+          <g><line class="s-line" x1="60" y1="464" x2="60" y2="500"/><line class="s-line" x1="60" y1="500" x2="296" y2="480"/><circle class="s-acc-f" cx="298" cy="480" r="3.5"/><text x="306" y="485" font-size="13.5">એક્સ્ટેન્શન રોડ (એન્વિલ)</text></g>
+          <g><line class="s-line" x1="101" y1="470" x2="101" y2="512"/><line class="s-line" x1="101" y1="512" x2="296" y2="510"/><circle class="s-acc-f" cx="298" cy="510" r="3.5"/><text x="306" y="515" font-size="13.5">વોશર</text></g>
         </g>
       </svg>
     </div>
