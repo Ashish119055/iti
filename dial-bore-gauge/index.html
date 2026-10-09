@@ -200,6 +200,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .proc li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-mono);font-weight:600}
 .proc li h4{margin-bottom:2px}
 .demo-callout{position:relative;margin:0 12px 12px;min-height:4.4em;background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;box-shadow:0 6px 18px color-mix(in srgb,var(--ink) 14%,transparent);animation:pop .35s ease}
+.demo-callout small{display:block;font-weight:500;color:var(--muted);font-size:.85rem}
 .demo-callout .big{display:block;font-family:var(--font-mono);font-size:1.25rem;color:var(--accent)}
 @keyframes pop{from{transform:translateY(6px);opacity:.4}to{transform:none;opacity:1}}
 .chap{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;counter-reset:c}
@@ -311,6 +312,15 @@ footer .wrap{padding-block:18px}
         <tr><td>ઘડિયાળથી ઊલટી દિશામાં (−)</td><td>પ્લન્જર બહાર આવ્યો → બોર <b>મોટો</b></td><td class="mono">D = N + રીડિંગ</td></tr>
       </table></div>
       <p class="note warn">યાદ રાખો: બોર ગેજમાં "ઘડિયાળની દિશા = નાનો બોર". આઉટસાઇડ માપન કરતાં આ ઊંધું લાગે છે.</p>
+      <h4>ફેરા ગણક (નાનું ડાયલ)નો નિયમ</h4>
+      <p>ઝીરો કરતી વખતે નાના ડાયલનો કાંટો ક્યાં છે તે નોંધો (દા.ત. 1 અને 2 ની વચ્ચે). ટર્નિંગ પોઇન્ટ પર ફરી જુઓ:</p>
+      <div class="tbl-wrap"><table>
+        <tr><th>ટર્નિંગ પોઇન્ટ પર ફેરા ગણક</th><th>અર્થ</th></tr>
+        <tr><td>એ જ ગાળામાં (1–2)</td><td>mm બદલાયો નથી; માત્ર મોટા ડાયલનું રીડિંગ ઉમેરો/બાદ કરો. દા.ત. 76.00 + 0.08 = <b class="mono">76.08</b></td></tr>
+        <tr><td>એક ગાળો ઓછો (0–1)</td><td>બોર 1 mm વધુ મોટો: દા.ત. <b class="mono">77.08</b></td></tr>
+        <tr><td>એક ગાળો વધુ (2–3)</td><td>બોર 1 mm વધુ નાનો</td></tr>
+      </table></div>
+      <p class="note">ગેજ હલાવતી વખતે (ત્રાંસુ હોય ત્યારે) નાનો કાંટો થોડો ખસે છે; તે ગણવાનો નથી. ફેરા ગણક હંમેશાં <b>ટર્નિંગ પોઇન્ટ પર જ</b> વાંચો. સામાન્ય ઘસારા (0.01–0.10 mm)માં તે ઝીરો વખતના ગાળામાં જ રહે છે.</p>
     </div>
     <div class="card prose">
       <h3>લઘુત્તમ માપ (Least Count)</h3>
@@ -840,13 +850,14 @@ function buildDial(svg){
     for(var j=0;j<100;j++){var a=j*3.6*Math.PI/180,len=j%10===0?14:(j%5===0?10:6.5),w=j%10===0?1.6:(j%5===0?1.1:.7);
       s+='<line class="s-tick" x1="'+(106*Math.sin(a)).toFixed(2)+'" y1="'+(-106*Math.cos(a)).toFixed(2)+'" x2="'+((106-len)*Math.sin(a)).toFixed(2)+'" y2="'+(-(106-len)*Math.cos(a)).toFixed(2)+'" stroke-width="'+w+'"/>';}
     for(var n=0;n<10;n++){var c=n*36,lab=style==="bal"?(n<=5?n*10:(10-n)*10):n*10;
-      s+='<text class="s-ink s-mono" transform="rotate('+c+') translate(0,-80) rotate('+(-c)+')" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="600">'+lab+'</text>';}
+      s+='<text class="s-ink s-mono lab" data-c="'+c+'" transform="rotate('+c+') translate(0,-80) rotate('+(-c)+')" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="600">'+lab+'</text>';}
     if(style==="bal"){s+='<text class="s-ink" transform="rotate(54) translate(0,-64)" text-anchor="middle" font-size="11" font-weight="700">+</text><text class="s-ink" transform="rotate(-54) translate(0,-64)" text-anchor="middle" font-size="12" font-weight="700">−</text>';}
-    d.scale.innerHTML=s;
+    d.scale.innerHTML=s;d.lastS=null;
   };
   d.set=function(ptrDeg,scaleDeg,revDeg){
     d.ptr.setAttribute("transform","rotate("+ptrDeg.toFixed(3)+")");
     d.scale.setAttribute("transform","rotate("+scaleDeg.toFixed(3)+")");
+    if(d.lastS!==scaleDeg){d.lastS=scaleDeg;[].forEach.call(d.scale.querySelectorAll(".lab"),function(t){var c=+t.dataset.c;t.setAttribute("transform","rotate("+c+") translate(0,-80) rotate("+(-c-scaleDeg).toFixed(3)+")");});}
     d.rp.setAttribute("transform","rotate("+revDeg.toFixed(3)+")");
   };
   return d;
@@ -1017,7 +1028,7 @@ $("btnAssemble").addEventListener("click",function(){
   var sum=+rod+w;
   if(sum<N){setMsg("રોડ + વોશર = <b class=mono>"+sum+" mm</b> — નોમિનલ "+N+" mm કરતાં ટૂંકું છે. ગેજ બોરની દીવાલને અડશે નહીં. મોટો રોડ કે વોશર લો.","bad");return;}
   if(sum>N){setMsg("રોડ + વોશર = <b class=mono>"+sum+" mm</b> — નોમિનલ "+N+" mm કરતાં લાંબું છે. પ્લન્જર રેન્જ બહાર જશે અને ગેજ બોરમાં બેસશે નહીં.","bad");return;}
-  st.free=N+1+rint(5,35)/100;st.assembled=true;st.zeroed=false;st.locked=false;st.loc="ring";
+  st.free=N+1.5+rint(-10,10)/100;st.assembled=true;st.zeroed=false;st.locked=false;st.loc="ring";
   st.bezel=0;resetTurn();drawScene();refreshUI();update();
   setMsg("સાચું! <b class=mono>"+rod+" + "+w+" = "+N+" mm</b>. હવે ગેજ સેટિંગ રીંગમાં છે. ગેજ હલાવો, ટર્નિંગ પોઇન્ટ પર <b>પોઇન્ટર પર ઝીરો</b> દબાવો અને બેઝલ લોક કરો.","ok");
 });
@@ -1293,7 +1304,7 @@ function finishMCQ(){
 }
 
 /* ================= એનિમેશન ડેમો ================= */
-var DFREE=77.20,DN=76;
+var DFREE=77.50,DN=76; /* પ્રીલોડ 1.5 mm: ફેરા ગણક 1 અને 2 ની વચ્ચે રહે */
 var DREAD={"0A":76.08,"0B":76.04,"1A":76.05,"1B":76.03,"2A":76.02,"2B":76.01};
 var dDial=buildDial($("dDial"));dDial.drawScale("cont");
 (function(){var g=document.createElementNS(NS,"g");g.setAttribute("class","mk");g.innerHTML='<polygon class="s-mark" points="0,-104 -5,-115 5,-115"/>';g.style.display="none";$("dDial").appendChild(g);})();
@@ -1307,8 +1318,8 @@ var LY=[150,255,360];
 function measStep(lvl,dirA,p,recBase){
   var half=p<.5?0:1,q=half?seg(p,.5,1):seg(p,0,.5),dir=half?"B":"A",D=DREAD[lvl+dir];
   var done=q>.8,rd=Math.round((D-DN)*100);
-  var call=done?(LVL[lvl]+" "+dir+"-"+dir+": પોઇન્ટર ઊલટી દિશામાં "+rd+" વિભાગ<span class=big>"+DN.toFixed(2)+" + "+f2(rd/100)+" = "+f2(D)+" mm</span>"):(half?"ગેજને 90° ફેરવો — હવે B-B દિશા. ફરી હલાવો.":"ગેજ હલાવો… ટર્નિંગ પોઇન્ટ શોધો");
-  return mk({loc:"job",gy:LY[lvl],tilt:rockDecay(q,5),inBore:true,D:D,dir:dir,lvl:lvl,bezel:BZ,lock:true,mark:q>.55,call:call,rec:recBase+half+(done?1:0)});
+  var call=done?(LVL[lvl]+" "+dir+"-"+dir+": પોઇન્ટર ઊલટી દિશામાં "+rd+" વિભાગ<span class=big>"+DN.toFixed(2)+" + "+f2(rd/100)+" = "+f2(D)+" mm</span><small>ફેરા ગણક ઝીરો વખતે જેમ 1 અને 2 ની વચ્ચે હતો તેમ જ છે → mm બદલાયો નથી</small>"):(half?"ગેજને 90° ફેરવો — હવે B-B દિશા. ફરી હલાવો.":"ગેજ હલાવો… ટર્નિંગ પોઇન્ટ શોધો");
+  return mk({loc:"job",gy:LY[lvl],tilt:rockDecay(q,4),inBore:true,D:D,dir:dir,lvl:lvl,bezel:BZ,lock:true,mark:q>.55,call:call,rec:recBase+half+(done?1:0)});
 }
 var DSTEPS=[
  {t:"ગેજ ઓળખો",x:"ડાયલ બોર ગેજના ત્રણ મુખ્ય ભાગ: ઉપર ડાયલ ઇન્ડિકેટર, વચ્ચે ઇન્સ્યુલેટેડ હેન્ડલ અને નીચે માપન હેડ. હેડમાં એક બાજુ સ્થિર એન્વિલ અને બીજી બાજુ સ્પ્રિંગવાળો પ્લન્જર હોય છે.",d:7000,
@@ -1316,17 +1327,17 @@ var DSTEPS=[
  {t:"એક્સ્ટેન્શન રોડ અને વોશર લગાવો",x:"જોબનો નોમિનલ વ્યાસ 76 mm છે. 75 mm નો એક્સ્ટેન્શન રોડ અને 1 mm નું વોશર લગાવો. રોડ વત્તા વોશર બરાબર નોમિનલ માપ.",d:7000,
   f:function(p){return mk({rod:ease(seg(p,0,.6)),washer:p>.65,hl:p<.65?"rod":"washer",call:p<.65?"75 mm એક્સ્ટેન્શન રોડ સ્ક્રુ કરો":"1 mm વોશર ઉમેરો<span class=big>75 + 1 = 76 mm</span>"});}},
  {t:"સેટિંગ રીંગમાં દાખલ કરો",x:"76 mm ની સેટિંગ રીંગ ગેજ લો. ગેજને થોડું નમાવી પહેલાં પ્લન્જર અને ગાઇડ બાજુ અંદર મૂકો, પછી એન્વિલ બાજુ ધીમેથી નીચે લાવો.",d:7000,
-  f:function(p){var a=seg(p,0,.7),gy=lerp(170,325,ease(a)),inB=gy>=318;return mk({loc:"ring",gy:gy,tilt:inB?lerp(6,3,seg(p,.7,1)):lerp(14,7,a),inBore:inB,call:inB?"ગેજ રીંગમાં બેઠું — પ્લન્જર દબાયો, પોઇન્ટર ફર્યો":"પ્લન્જર બાજુ પહેલાં નમાવીને દાખલ કરો"});}},
+  f:function(p){var a=seg(p,0,.7),gy=lerp(170,325,ease(a)),inB=gy>=318;return mk({loc:"ring",gy:gy,tilt:inB?lerp(4,2,seg(p,.7,1)):lerp(14,7,a),inBore:inB,call:inB?"ગેજ રીંગમાં બેઠું — પ્લન્જર દબાયો, પોઇન્ટર ફર્યો":"પ્લન્જર બાજુ પહેલાં નમાવીને દાખલ કરો"});}},
  {t:"ગેજ હલાવો (રોકિંગ)",x:"હેન્ડલ પકડી ગેજને આગળ-પાછળ હળવેથી હલાવો. પોઇન્ટર પણ આગળ-પાછળ ફરશે. ગેજ ત્રાંસુ હોય ત્યારે અંતર વધે છે, એટલે પોઇન્ટર ઊલટી દિશામાં જાય છે.",d:8000,
-  f:function(p){return mk({loc:"ring",gy:325,tilt:6*Math.sin(p*Math.PI*4+0.5),inBore:true,call:"પોઇન્ટર જુઓ: આગળ જાય છે… પાછો આવે છે…"});}},
+  f:function(p){return mk({loc:"ring",gy:325,tilt:4*Math.sin(p*Math.PI*4+0.5),inBore:true,call:"પોઇન્ટર જુઓ: આગળ જાય છે… પાછો આવે છે…"});}},
  {t:"ટર્નિંગ પોઇન્ટ ઓળખો",x:"હલાવતી વખતે પોઇન્ટર ઘડિયાળની દિશામાં જ્યાં સૌથી દૂર જઈને પાછો વળે તે ટર્નિંગ પોઇન્ટ છે. ત્યારે ગેજ બોરને બરાબર લંબ હોય છે અને અંતર સૌથી ઓછું એટલે સાચો વ્યાસ.",d:8000,
-  f:function(p){var t=p<.5?lerp(5,-3,ease(p/.5)):lerp(-3,0,ease(seg(p,.5,.85)));return mk({loc:"ring",gy:325,tilt:t,inBore:true,mark:p>.3,call:p>.85?"અહીં પોઇન્ટર પાછો વળ્યો — આ જ ટર્નિંગ પોઇન્ટ ▲":"ધીમેથી હલાવો… પોઇન્ટર ક્યાં પાછો વળે છે?"});}},
+  f:function(p){var t=p<.5?lerp(4,-3,ease(p/.5)):lerp(-3,0,ease(seg(p,.5,.85)));return mk({loc:"ring",gy:325,tilt:t,inBore:true,mark:p>.3,call:p>.85?"અહીં પોઇન્ટર પાછો વળ્યો — આ જ ટર્નિંગ પોઇન્ટ ▲":"ધીમેથી હલાવો… પોઇન્ટર ક્યાં પાછો વળે છે?"});}},
  {t:"બેઝલ ફેરવી ઝીરો કરો",x:"ટર્નિંગ પોઇન્ટ પર ગેજ સ્થિર રાખી બેઝલ (બહારની રીંગ) ફેરવો, જ્યાં સુધી સ્કેલનું 0 પોઇન્ટરની બરાબર નીચે ન આવે.",d:7000,
   f:function(p){return mk({loc:"ring",gy:325,inBore:true,mark:true,bezel:BZ*ease(seg(p,.1,.8)),call:p>.8?"ઝીરો સેટ થયો — પોઇન્ટર 0 પર":"બેઝલ ફેરવો…"});}},
  {t:"બેઝલ લોક કરો અને ફેરા ગણક નોંધો",x:"બેઝલ લોક સ્ક્રુ કસો જેથી ઝીરો ન ખસે. નાના ફેરા ગણકનો કાંટો ક્યાં છે તે પણ યાદ રાખો. હવે ગેજ 76.00 mm પર સેટ છે.",d:6000,
   f:function(p){return mk({loc:"ring",gy:325,inBore:true,bezel:BZ,lock:p>.3,call:p>.3?"લોક સ્ક્રુ કસ્યો ✔ ગેજ 76.00 mm પર સેટ":"લોક સ્ક્રુ કસો"});}},
  {t:"જોબમાં દાખલ કરો — ઉપર, A-A",x:"ગેજને સિલિન્ડરમાં ઉપરની ઊંડાઈએ (ટોપ રિંગ રિવર્સલથી થોડું નીચે) મૂકો. પહેલી દિશા A-A એટલે થ્રસ્ટ બાજુ, ક્રેન્કશાફ્ટને લંબ.",d:6000,
-  f:function(p){return mk({loc:"job",gy:150,tilt:lerp(12,4,ease(p)),inBore:true,D:DREAD["0A"],bezel:BZ,lock:true,call:"ઉપરની ઊંડાઈ · A-A દિશા (ઉપરથી દૃશ્ય જુઓ)"});}},
+  f:function(p){return mk({loc:"job",gy:150,tilt:lerp(4,1.5,ease(p)),inBore:true,D:DREAD["0A"],bezel:BZ,lock:true,call:"ઉપરની ઊંડાઈ · A-A દિશા (ઉપરથી દૃશ્ય જુઓ)"});}},
  {t:"રીડિંગ લો — ઉપર A-A અને B-B",x:"ગેજ હલાવી ટર્નિંગ પોઇન્ટ પર પોઇન્ટર વાંચો. અહીં પોઇન્ટર ઝીરોથી ઊલટી દિશામાં 8 વિભાગ છે, એટલે બોર 0.08 mm મોટો: 76.08 mm. પછી ગેજ 90° ફેરવી B-B દિશામાં માપ લો.",d:12000,
   f:function(p){return measStep(0,true,p,0);}},
  {t:"મધ્ય ઊંડાઈ — A-A અને B-B",x:"ગેજને મધ્ય ઊંડાઈએ નીચે લાવો અને એ જ રીતે બંને દિશામાં ટર્નિંગ પોઇન્ટ પર રીડિંગ લો.",d:11000,
