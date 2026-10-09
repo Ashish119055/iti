@@ -1402,13 +1402,14 @@ function measStep(lvl,dirA,p,recBase){
 var DSTEPS=[
  {t:"ગેજ ઓળખો",x:"ડાયલ બોર ગેજના ત્રણ મુખ્ય ભાગ: ઉપર ડાયલ ઇન્ડિકેટર, વચ્ચે ઇન્સ્યુલેટેડ હેન્ડલ અને નીચે માપન હેડ. હેડમાં એક બાજુ સ્થિર એન્વિલ અને બીજી બાજુ સ્પ્રિંગવાળો પ્લન્જર હોય છે.",d:7000,
   f:function(p){var h=p<.33?"dial":p<.66?"grip":"head";return mk({rod:0,washer:false,hl:h,call:{dial:"ડાયલ ઇન્ડિકેટર — 0.01 mm વિભાગ",grip:"ઇન્સ્યુલેટેડ હેન્ડલ — હાથની ગરમી રોકે",head:"માપન હેડ: ડાબે એન્વિલ, જમણે પ્લન્જર + ગાઇડ"}[h]});}},
- {t:"એક્સ્ટેન્શન રોડ અને વોશર લગાવો",x:"જોબનો નોમિનલ વ્યાસ 76 mm છે. 75 mm નો એક્સ્ટેન્શન રોડ અને 1 mm નું વોશર લગાવો. રોડ વત્તા વોશર બરાબર નોમિનલ માપ.",d:7000,
-  f:function(p){return mk({rod:ease(seg(p,0,.6)),washer:p>.65,hl:p<.65?"rod":"washer",call:p<.65?"75 mm એક્સ્ટેન્શન રોડ સ્ક્રુ કરો":"1 mm વોશર ઉમેરો<span class=big>75 + 1 = 76 mm</span>"});}},
+ {t:"એક્સ્ટેન્શન રોડ અને વોશર લગાવો",x:"જોબનો નોમિનલ વ્યાસ 76 mm છે. 75 mm નો એક્સ્ટેન્શન રોડ અને 1 mm નું વોશર લગાવો. રોડ વત્તા વોશર બરાબર નોમિનલ માપ 76 mm. પ્લન્જર સ્પ્રિંગથી થોડો બહાર નીકળેલો રહે છે, એટલે ગેજની ખુલ્લી લંબાઈ 76 mm કરતાં વધુ, અહીં 77.92 mm, હોય છે.",d:10000,
+  f:function(p){return mk({rod:ease(seg(p,0,.6)),washer:p>.65,hl:p<.65?"rod":"washer",dims:p>.65,call:p<.65?"75 mm એક્સ્ટેન્શન રોડ સ્ક્રુ કરો":"1 mm વોશર ઉમેરો<span class=big>75 + 1 = 76 mm</span><small>પણ પ્લન્જર સ્પ્રિંગથી બહાર નીકળેલો છે, એટલે ખુલ્લી કુલ લંબાઈ <b>77.92 mm</b> (76.00 + 1.92). લાલ ભાગ = વધારાનો પ્લન્જર (સમજ માટે મોટો દોર્યો છે).</small>"});}},
  {t:"ફેરા ગણક (નાનું ડાયલ) સમજો",x:"મોટો કાંટો એક પૂરો ફેરો ફરે (100 વિભાગ = 1 mm) ત્યારે નાનો કાંટો એક આંક આગળ જાય. એટલે નાના ડાયલનો દરેક આંક = 1 mm. અહીં પ્લન્જરને ધીમે ધીમે 2.5 mm દબાવીને જુઓ: મોટો કાંટો 0 વટાવે ત્યારે નાનો કાંટો 0 થી 1, પછી 1 થી 2 પર જાય છે.",d:16000,
   f:function(p){var c=2.5*ease(seg(p,.05,.85)),t=Math.round(c*100),full=Math.floor(t/100),rem=t-full*100,cross=c>0.3&&(t%100<6||t%100>96);
-    return mk({rod:1,washer:true,cOv:c,revhl:true,ck:"rev",call:bigRev(c)+"આંગળીથી પ્લન્જર <b>"+f2(c)+" mm</b> દબાયો<span class=big>"+full+" પૂરો ફેરો + "+rem+" વિભાગ</span><small>"+(cross?"<b>હમણાં મોટો કાંટો 0 વટાવ્યો → નાનો કાંટો એક આંક આગળ ("+full+")</b>":"નાનો કાંટો "+full+" અને "+(full+1)+" ની વચ્ચે છે — "+full+" પૂરા mm")+"</small>"});}},
- {t:"સેટિંગ રીંગમાં દાખલ કરો",x:"76 mm ની સેટિંગ રીંગ ગેજ લો. ગેજને થોડું નમાવી પહેલાં પ્લન્જર અને ગાઇડ બાજુ અંદર મૂકો, પછી એન્વિલ બાજુ ધીમેથી નીચે લાવો.",d:7000,
-  f:function(p){var a=seg(p,0,.7),gy=lerp(170,325,ease(a)),inB=gy>=318;return mk({loc:"ring",gy:gy,tilt:inB?lerp(4,2,seg(p,.7,1)):lerp(14,7,a),inBore:inB,call:inB?"ગેજ રીંગમાં બેઠું — પ્લન્જર દબાયો, પોઇન્ટર ફર્યો":"પ્લન્જર બાજુ પહેલાં નમાવીને દાખલ કરો"});}},
+    return mk({rod:1,washer:true,cOv:c,revhl:true,dims:true,ck:"rev",call:bigRev(c)+"આંગળીથી પ્લન્જર <b>"+f2(c)+" mm</b> દબાયો<span class=big>"+full+" પૂરો ફેરો + "+rem+" વિભાગ</span><small>"+(cross?"<b>હમણાં મોટો કાંટો 0 વટાવ્યો → નાનો કાંટો એક આંક આગળ ("+full+")</b>":"નાનો કાંટો "+full+" અને "+(full+1)+" ની વચ્ચે છે — "+full+" પૂરા mm")+"</small>"});}},
+ {t:"સેટિંગ રીંગમાં દાખલ કરો",x:"76 mm ની સેટિંગ રીંગ ગેજ લો. ગેજને થોડું નમાવી પહેલાં પ્લન્જર અને ગાઇડ બાજુ અંદર મૂકો, પછી એન્વિલ બાજુ ધીમેથી નીચે લાવો. ગેજ 77.92 mm લાંબું અને રીંગ 76.00 mm, એટલે પ્લન્જર 1.92 mm અંદર દબાય છે અને નાનો કાંટો 1 અને 2 ની વચ્ચે આવે છે.",d:11000,
+  f:function(p){var a=seg(p,0,.55),gy=lerp(170,325,ease(a)),inB=gy>=318;return mk({loc:"ring",gy:gy,tilt:inB?lerp(3,0,seg(p,.55,.75)):lerp(14,7,a),inBore:inB,dims:true,ck:inB?"in":"out",
+    call:inB?"રીંગ 76.00 mm, ગેજ ખુલ્લું 77.92 mm<span class=big>77.92 − 76.00 = 1.92 mm દબાયો</span><small>આ <b>પ્રીલોડ</b> છે, 1 mm નો વધારો નથી. એટલે નાનો કાંટો 1 અને 2 ની વચ્ચે આવે છે. આ સ્થિતિને જ ઝીરો (76.00) માનીશું.</small>":"ખુલ્લી લંબાઈ 77.92 mm &gt; રીંગ 76.00 mm<small>અંદર મૂકતાં પ્લન્જર દબાશે. પ્લન્જર બાજુ પહેલાં નમાવીને દાખલ કરો.</small>"});}},
  {t:"ગેજ હલાવો (રોકિંગ)",x:"હેન્ડલ પકડી ગેજને આગળ-પાછળ હળવેથી હલાવો. પોઇન્ટર પણ આગળ-પાછળ ફરશે. ગેજ ત્રાંસુ હોય ત્યારે અંતર વધે છે, એટલે પોઇન્ટર ઊલટી દિશામાં જાય છે.",d:8000,
   f:function(p){return mk({loc:"ring",gy:325,tilt:4*Math.sin(p*Math.PI*4+0.5),inBore:true,call:"પોઇન્ટર જુઓ: આગળ જાય છે… પાછો આવે છે…"});}},
  {t:"ટર્નિંગ પોઇન્ટ ઓળખો",x:"હલાવતી વખતે પોઇન્ટર ઘડિયાળની દિશામાં જ્યાં સૌથી દૂર જઈને પાછો વળે તે ટર્નિંગ પોઇન્ટ છે. ત્યારે ગેજ બોરને બરાબર લંબ હોય છે અને અંતર સૌથી ઓછું એટલે સાચો વ્યાસ.",d:8000,
@@ -1437,7 +1438,7 @@ $("dTot").textContent=DSTEPS.length;
 $("dChaps").innerHTML=DSTEPS.map(function(s,i){return '<li><button data-di="'+i+'">'+s.t+'</button></li>';}).join("");
 [].forEach.call(document.querySelectorAll("[data-di]"),function(b){b.addEventListener("click",function(){dGoto(+b.dataset.di);});});
 
-function dC(ds){if(ds.cOv!=null)return ds.cOv;return ds.inBore?DFREE-ds.D/Math.cos(ds.tilt*Math.PI/180):0.06;}
+function dC(ds){if(ds.cOv!=null)return ds.cOv;return ds.inBore?DFREE-ds.D/Math.cos(ds.tilt*Math.PI/180):0;}
 function drawDemo(ds){
   var s='<defs><pattern id="dhatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" style="fill:var(--work)"/><line x1="0" y1="0" x2="0" y2="8" class="s-hatch"/></pattern></defs>';
   if(ds.loc==="ring"){
@@ -1453,8 +1454,8 @@ function drawDemo(ds){
   }else{
     s+='<rect x="40" y="300" width="320" height="10" rx="3" class="s-steel-d" opacity=".5"/>';
   }
-  var a=ds.tilt,ca=Math.cos(a*Math.PI/180),h=ds.inBore?120/ca:124,L=Math.max(140,(ds.gy-30)/ca),c=dC(ds);
-  var rodL=(h-63)*ds.rod;
+  var a=ds.tilt,ca=Math.cos(a*Math.PI/180),PX=18,h=ds.inBore?120/ca:120+PX*(1-dC(ds)/(DFREE-DN)),hL=ds.inBore?120/ca:120,L=Math.max(140,(ds.gy-30)/ca),c=dC(ds);
+  var rodL=(hL-63)*ds.rod; /* એન્વિલ બાજુ સ્થિર (hL), પ્લન્જર બાજુ ખસે (h) */
   s+='<g transform="translate(200,'+ds.gy.toFixed(1)+') rotate('+a.toFixed(2)+')">';
   s+='<rect x="-5" y="'+(-L)+'" width="10" height="'+(L-10)+'" class="s-steel"/>';
   s+='<rect x="-10" y="'+(-L+40)+'" width="20" height="'+Math.min(90,L-70)+'" rx="6" class="s-grip"/>';
@@ -1462,12 +1463,26 @@ function drawDemo(ds){
   var pd=(c*360)*Math.PI/180;
   s+='<line x1="0" y1="'+(-L-6)+'" x2="'+(11*Math.sin(pd)).toFixed(2)+'" y2="'+(-L-6-11*Math.cos(pd)).toFixed(2)+'" class="s-ptr-l" stroke-width="1.6"/>';
   s+='<rect x="-58" y="-12" width="116" height="24" rx="4" class="s-steel"/>';
-  if(ds.rod>0.01){s+='<rect x="'+(-63-rodL)+'" y="-4" width="'+rodL+'" height="8" class="s-steel-d"/>';if(ds.rod>.98)s+='<circle cx="'+(-h+4)+'" cy="0" r="4" class="s-steel-d"/>';}
+  if(ds.rod>0.01){s+='<rect x="'+(-63-rodL)+'" y="-4" width="'+rodL+'" height="8" class="s-steel-d"/>';if(ds.rod>.98)s+='<circle cx="'+(-hL+4)+'" cy="0" r="4" class="s-steel-d"/>';}
   if(ds.washer)s+='<rect x="-64" y="-9" width="6" height="18" class="s-steel" style="stroke:var(--accent);stroke-width:1.5"/>';
   s+='<rect x="58" y="-3.5" width="'+(h-62)+'" height="7" class="s-steel-d"/><circle cx="'+(h-4)+'" cy="0" r="4" class="s-steel-d"/>';
   s+='<path d="M64 -14 Q'+(h-3)+' -14 '+(h-0.5)+' -3 M64 14 Q'+(h-3)+' 14 '+(h-0.5)+' 3" class="s-guide"/>';
-  if(ds.inBore)s+='<circle cx="'+(-h)+'" cy="0" r="2.6" class="s-contact"/><circle cx="'+h+'" cy="0" r="2.6" class="s-contact"/>';
-  var hl={dial:[0,-L-6,24],grip:[0,-L+85,52],head:[0,0,70],rod:[-h/2-30,0,38],washer:[-61,0,16]}[ds.hl];
+  if(ds.inBore)s+='<circle cx="'+(-hL)+'" cy="0" r="2.6" class="s-contact"/><circle cx="'+h+'" cy="0" r="2.6" class="s-contact"/>';
+  var hl={dial:[0,-L-6,24],grip:[0,-L+85,52],head:[0,0,70],rod:[-hL/2-30,0,38],washer:[-61,0,16]}[ds.hl];
+  if(ds.dims){
+    /* માપ રેખાઓ: રોડ+વોશર = 76.00, પ્લન્જર સાથે ખુલ્લી લંબાઈ 77.92 */
+    var dimL=function(x1,x2,y,cls){return '<line x1="'+x1.toFixed(1)+'" y1="'+y+'" x2="'+x2.toFixed(1)+'" y2="'+y+'" class="'+cls+'" stroke-width="1.6"/><line x1="'+x1.toFixed(1)+'" y1="'+(y-5)+'" x2="'+x1.toFixed(1)+'" y2="'+(y+5)+'" class="'+cls+'" stroke-width="1.6"/><line x1="'+x2.toFixed(1)+'" y1="'+(y-5)+'" x2="'+x2.toFixed(1)+'" y2="'+(y+5)+'" class="'+cls+'" stroke-width="1.6"/>';};
+    var lab=function(x,y,t,cls,anc){return '<text x="'+x+'" y="'+y+'" font-size="10.5" font-weight="700" class="'+cls+'" text-anchor="'+(anc||"end")+'" style="paint-order:stroke;stroke:var(--surface);stroke-width:4px">'+t+'</text>';};
+    var x0=-hL,x76=120,ext=h-x76;
+    s+='<line x1="'+x76+'" y1="-60" x2="'+x76+'" y2="14" class="s-acc" stroke-dasharray="3 3"/>';
+    s+=dimL(x0,x76,-24,"s-acc")+lab(-16,-29,"76.00 mm = 75 રોડ + 1 વોશર","s-acc-f");
+    if(!ds.inBore&&ext>1.5){
+      s+=dimL(x0,h,-48,"s-line")+lab(-16,-53,f2(DFREE-dC(ds))+" mm પ્લન્જર સાથે (ખુલ્લો)","s-txt");
+      s+='<line x1="'+x76+'" y1="-48" x2="'+h.toFixed(1)+'" y2="-48" class="s-ptr-l" stroke-width="4"/>'+lab(x76+ext/2,-58,"+"+f2(DFREE-DN-dC(ds)),"s-ptr","middle");
+    }else if(ds.inBore){
+      s+=lab(x76-4,-48,"પ્લન્જર "+f2(dC(ds))+" mm અંદર દબાયો","s-ptr");
+    }
+  }
   if(hl)s+='<circle class="s-pulse" cx="'+hl[0]+'" cy="'+hl[1]+'" r="'+hl[2]+'"><animate attributeName="opacity" values="1;.25;1" dur="1.1s" repeatCount="indefinite"/></circle>';
   s+='</g>';
   $("dScene").innerHTML=s;
